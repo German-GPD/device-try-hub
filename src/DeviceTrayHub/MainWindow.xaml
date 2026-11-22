@@ -32,7 +32,7 @@
                 <DockPanel>
                     <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentBrush}" Margin="0,0,9,0"/>
                     <TextBlock Text="Приложение работает в фоне" FontSize="12" FontWeight="Medium"/>
-                    <TextBlock Text="ДАННЫЕ НЕ ПОДТВЕРЖДЕНЫ" FontSize="9"
+                    <TextBlock Text="УСТРОЙСТВА ЕЩЁ НЕ ПРОВЕРЕНЫ" FontSize="9"
                                Foreground="{DynamicResource MutedBrush}" DockPanel.Dock="Right"
                                VerticalAlignment="Center"/>
                 </DockPanel>
