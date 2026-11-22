@@ -19,6 +19,7 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             PositionNearTray();
+            UpdateStartupButtonText();
             await RefreshDevicesAsync();
             _pollTimer.Start();
         };
@@ -105,6 +106,20 @@ public partial class MainWindow : Window
 
     private void CloseButton_Click(object sender, RoutedEventArgs e) => Hide();
 
+    private void UpdateStartupButtonText()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run");
+            var enabled = key?.GetValue("GermanDeviceTrayHub") is string value && !string.IsNullOrWhiteSpace(value);
+            StartupButton.Content = enabled ? "Автозапуск: включён" : "Автозапуск: выключен";
+        }
+        catch
+        {
+            StartupButton.Content = "Автозапуск: недоступен";
+        }
+    }
+
     private void StartupButton_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -119,10 +134,7 @@ public partial class MainWindow : Window
             else
                 key.DeleteValue("GermanDeviceTrayHub", false);
 
-            MessageBox.Show(current is null
-                ? "Автозапуск включён для текущего пользователя."
-                : "Автозапуск выключен.",
-                "Device Tray Hub", MessageBoxButton.OK, MessageBoxImage.Information);
+            UpdateStartupButtonText();
         }
         catch (Exception ex)
         {
