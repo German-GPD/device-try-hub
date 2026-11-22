@@ -1,4 +1,5 @@
 using German.DeviceTrayHub;
+using Xunit;
 
 namespace DeviceTrayHub.Tests;
 
