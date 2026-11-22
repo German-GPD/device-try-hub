@@ -2,17 +2,30 @@ namespace German.DeviceTrayHub;
 
 internal static class KeychronBridgeStateParser
 {
-    private const byte ReceiverStatusReportId = 0x54;
+    private const byte GetStateCommand = 0xB2;
+    private const int KeychronVendorId = 0x3434;
 
     public static bool TryParse(ReadOnlySpan<byte> report, out bool keyboardConnected)
     {
         keyboardConnected = false;
 
-        // Link receiver status input report: 54 <channel> <carrier/link flag> ...
-        if (report.Length < 3 || report[0] != ReceiverStatusReportId)
+        // HidSharp includes report ID 0 at index 0. FR_GET_STATE response
+        // command is byte 1; three paired slots begin at byte 3.
+        if (report.Length < 18 || report[0] != 0x00 || report[1] != GetStateCommand)
             return false;
 
-        keyboardConnected = report[2] != 0;
+        for (var offset = 3; offset <= 13; offset += 5)
+        {
+            var vendorId = (report[offset] << 8) | report[offset + 1];
+            var status = report[offset + 4];
+
+            if (vendorId == KeychronVendorId && status == 1)
+            {
+                keyboardConnected = true;
+                return true;
+            }
+        }
+
         return true;
     }
 }
