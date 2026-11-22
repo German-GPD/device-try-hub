@@ -32,11 +32,11 @@ The current branch contains the WPF tray application, system theme/accent integr
 - Optional per-user startup registration; no administrator permission is required.
 - Device polling runs off the UI thread and avoids overlapping refresh cycles.
 - **Keychron K3 Max (experimental):** probes Keychron Link receivers (VID/PID `3434:D030` / `3434:D031`) with the read-only `FR_GET_STATE` command and reports whether a Keychron device is connected in a receiver slot. It does not claim a battery percentage because the exact battery response over this receiver path is not yet verified.
-- **Attack Shark R1 (experimental):** passively listens to the receiver's dedicated battery HID collection (`MI_02 / COL03`) for VID/PID `1D57:FA60`; it does not send commands to the mouse. It accepts only valid battery frames, converts firmware's `0..10` or `0..100` charge format, and requires two matching consecutive readings to reject the one-off false 100% packet on reconnect. The last confirmed level is retained while the mouse sleeps; no percentage is invented when the receiver is absent.
-- **DualShock 4:** queries battery, charging, and connection type from running `DS4Windows.exe` through its read-only IPC on each tray activation (no 10-second stale cache). The first controller slot is used; query output is drained asynchronously with a bounded timeout.
+- **Attack Shark R1 (experimental):** passively listens to the receiver's dedicated battery HID collection (`MI_02 / COL03`) for VID/PID `1D57:FA60`; it does not send commands to the mouse. It accepts only valid battery frames, reads the receiver's `0..100` charge byte without rescaling, and requires two matching consecutive readings to reject the one-off false 100% packet on reconnect. The last confirmed level is retained while the mouse sleeps; no percentage is invented when the receiver is absent.
+- **DualShock 4:** queries battery, charging, and connection type from running `DS4Windows.exe` through its read-only IPC on each tray activation (no 10-second stale cache). The adapter scans DS4Windows slots 1–4 for an active USB/Bluetooth controller; query output is drained asynchronously with a bounded timeout.
 - Self-contained x64 publish and Inno Setup installer pipeline.
 - PowerShell build script checks the SDK, builds, runs tests, publishes, and packages the installer.
-- Unit tests cover Keychron receiver-state parsing and R1 report signature validation, charge scaling, and charging-flag decoding.
+- Unit tests cover Keychron receiver-state parsing and R1 report signature validation, exact percentage decoding, and charging-flag decoding.
 
 ## Hardware notes
 
@@ -44,7 +44,7 @@ The current branch contains the WPF tray application, system theme/accent integr
 
 The adapter is based on a public Linux driver that documents the wireless receiver as USB `1D57:FA60`, HID interface 2, battery input report ID `0x03`, and charging/status fields. Its report format is ported to a Windows HID reader; it has **not yet been verified on the user's physical mouse and receiver**.
 
-The adapter only displays a percentage after the report ID, R1 device identifier, ready status, and charge range pass validation. A timeout does not create a new percentage. It keeps the last confirmed reading while the receiver remains present.
+The adapter only displays a percentage after the report ID, R1 device identifier, ready status, and 0–100 charge range pass validation. The receiver's last byte is treated as an exact percentage (e.g. `6` means `6%`, not `60%`). A timeout does not create a new percentage. It keeps the last confirmed reading while the receiver remains present.
 
 Reference: [jlucaso1/attack-shark-r1](https://github.com/jlucaso1/attack-shark-r1).
 
