@@ -41,14 +41,19 @@ public sealed class R1BatteryReportParserTests
         Assert.Null(reading.IsCharging);
     }
 
-    [Theory]
-    [InlineData(new byte[] { 0x02, 0x10, 0x40, 0x01, 6 })]
-    [InlineData(new byte[] { 0x03, 0x11, 0x40, 0x01, 6 })]
-    [InlineData(new byte[] { 0x03, 0x10, 0x00, 0x01, 6 })]
-    [InlineData(new byte[] { 0x03, 0x10, 0x40, 0x01, 101 })]
-    [InlineData(new byte[] { 0x03, 0x10, 0x40 })]
-    public void RejectsMalformedOrOutOfRangeReports(byte[] report)
+    [Fact]
+    public void RejectsMalformedOrOutOfRangeReports()
     {
-        Assert.False(R1BatteryReportParser.TryParse(report, out _));
+        byte[][] reports =
+        [
+            [0x02, 0x10, 0x40, 0x01, 6],
+            [0x03, 0x11, 0x40, 0x01, 6],
+            [0x03, 0x10, 0x00, 0x01, 6],
+            [0x03, 0x10, 0x40, 0x01, 101],
+            [0x03, 0x10, 0x40]
+        ];
+
+        foreach (var report in reports)
+            Assert.False(R1BatteryReportParser.TryParse(report, out _));
     }
 }
