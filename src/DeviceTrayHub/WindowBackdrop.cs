@@ -7,8 +7,10 @@ namespace German.DeviceTrayHub;
 internal static class WindowBackdrop
 {
     private const int DwmwaUseImmersiveDarkMode = 20;
+    private const int DwmwaWindowCornerPreference = 33;
     private const int DwmwaSystemBackdropType = 38;
     private const int DwmSystemBackdropTransientWindow = 3;
+    private const int DwmWindowCornerRound = 2;
 
     public static void Apply(Window? window)
     {
@@ -30,6 +32,11 @@ internal static class WindowBackdrop
         _ = DwmSetWindowAttribute(handle, DwmwaUseImmersiveDarkMode,
             ref darkMode, sizeof(int));
 
+        var corner = DwmWindowCornerRound;
+        _ = DwmSetWindowAttribute(handle, DwmwaWindowCornerPreference,
+            ref corner, sizeof(int));
+
+        // Windows 11 system backdrop for transient utility windows (Mica/Acrylic family).
         var backdrop = DwmSystemBackdropTransientWindow;
         _ = DwmSetWindowAttribute(handle, DwmwaSystemBackdropType,
             ref backdrop, sizeof(int));
