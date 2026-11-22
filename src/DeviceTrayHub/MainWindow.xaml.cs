@@ -16,13 +16,14 @@ public partial class MainWindow : Window
         InitializeComponent();
         _pollTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
         _pollTimer.Tick += async (_, _) => await RefreshDevicesAsync();
-        Loaded += async (_, _) =>
+        IsVisibleChanged += (_, _) =>
         {
-            PositionNearTray();
-            UpdateStartupButtonText();
-            await RefreshDevicesAsync();
-            _pollTimer.Start();
+            if (IsVisible) PositionNearTray();
         };
+        Loaded += (_, _) => UpdateStartupButtonText();
+        UpdateStartupButtonText();
+        _ = RefreshDevicesAsync();
+        _pollTimer.Start();
         Deactivated += (_, _) => Hide();
     }
 
