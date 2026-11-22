@@ -31,7 +31,7 @@ The current branch contains the WPF tray application, system theme/accent integr
 - Windows high-contrast colors take priority for accessibility.
 - Optional per-user startup registration; no administrator permission is required.
 - Device polling runs off the UI thread and avoids overlapping refresh cycles.
-- **Keychron K3 Max (experimental):** probes Keychron Link receivers (VID/PID `3434:D030` / `3434:D031`) with the read-only `FR_GET_STATE` command and reports whether a Keychron device is connected in a receiver slot. It does not claim a battery percentage because the exact battery response over this receiver path is not yet verified.
+- **Keychron K3 Max (experimental):** probes Keychron Link receivers (VID/PID `3434:D030` / `3434:D031`) using the receiver feature-report `0x51/0x01` setup, output command `B2 01`, and input status report `0x54`. It does not claim a battery percentage because the exact battery response over this receiver path is not yet verified.
 - **Attack Shark R1 (experimental):** passively listens to the receiver's dedicated battery HID collection (`MI_02 / COL03`) for VID/PID `1D57:FA60`; it does not send commands to the mouse. It accepts only valid battery frames, reads the receiver's `0..100` charge byte without rescaling, and requires two matching consecutive readings to reject the one-off false 100% packet on reconnect. The last confirmed level is retained while the mouse sleeps; no percentage is invented when the receiver is absent.
 - **DualShock 4:** queries battery, charging, and connection type from running `DS4Windows.exe` through its read-only IPC on each tray activation (no 10-second stale cache). The adapter scans DS4Windows slots 1–4 for an active USB/Bluetooth controller; query output is drained asynchronously with a bounded timeout.
 - Self-contained x64 publish and Inno Setup installer pipeline.
@@ -56,9 +56,9 @@ Reference: [DS4Windows command-line query documentation](https://ds4window.org/c
 
 ### Keychron K3 Max
 
-The receiver adapter uses the documented Keychron Link bridge protocol to query connected slots. The receiver reports the connected peripheral state, but the current public protocol notes do not establish a trustworthy battery percentage for this exact keyboard/receiver path. The app therefore reports connection state only and leaves battery/charging unavailable. It will not substitute a guessed value or silently switch the keyboard to Bluetooth.
+The receiver adapter uses the Keychron Link handshake (`SetFeature 0x51/0x01`, output `B2 01`, response `0x54`) to read the receiver's link status. Report `0x54` confirms link/carrier state but does not contain the keyboard battery percentage. The app therefore reports connection state only and leaves battery/charging unavailable rather than substituting a guessed value. Battery telemetry for stock K3 Max firmware over this exact receiver path remains under investigation.
 
-Reference: [Keychron Vial protocol notes — bridge/dongle](https://github.com/Tymon3310/keychron-vial/blob/main/docs/launcher/bridge-dongle-protocol.md) and [wireless communication](https://github.com/Tymon3310/keychron-vial/blob/main/docs/launcher/wireless-communication.md).
+References: [Keychron Vial bridge/dongle notes](https://github.com/Tymon3310/keychron-vial/blob/main/docs/launcher/bridge-dongle-protocol.md), [wireless communication](https://github.com/Tymon3310/keychron-vial/blob/main/docs/launcher/wireless-communication.md), and [Keychron Link battery research](https://github.com/dolfbarr/keychron-battery).
 
 ## Planned work
 
