@@ -66,6 +66,7 @@ public partial class App : Application
             _trayIcon.Visible = false;
             _trayIcon.Dispose();
         }
+        Microsoft.Win32.SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         _mutex?.ReleaseMutex();
         _mutex?.Dispose();
         base.OnExit(e);
