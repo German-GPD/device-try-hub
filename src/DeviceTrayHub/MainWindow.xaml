@@ -29,7 +29,7 @@
             <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}"
                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                     CornerRadius="9" Padding="11" Margin="0,0,0,12">
-                <DockPanel>
+                <DockPanel LastChildFill="False">
                     <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentBrush}" Margin="0,0,9,0"/>
                     <TextBlock Text="Приложение работает в фоне" FontSize="12" FontWeight="Medium"/>
                     <TextBlock Text="R1: ЭКСПЕРИМЕНТАЛЬНО" FontSize="9"
