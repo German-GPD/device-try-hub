@@ -12,6 +12,7 @@ internal static class R1BatteryAdapter
     private const byte BatteryReportId = 0x03;
     private const byte R1DeviceId = 0x10;
     private const byte BatteryReady = 0x40;
+    private static DeviceStatus? _lastKnownStatus;
 
     public static DeviceStatus ReadStatus()
     {
@@ -24,6 +25,7 @@ internal static class R1BatteryAdapter
 
             if (device is null)
             {
+                _lastKnownStatus = null;
                 return new DeviceStatus(
                     "Attack Shark R1",
                     "Приёмник не обнаружен",
@@ -80,21 +82,31 @@ internal static class R1BatteryAdapter
                 _ => "Неизвестно"
             };
 
-            return new DeviceStatus(
+            _lastKnownStatus = new DeviceStatus(
                 "Attack Shark R1",
                 "Мышь отвечает",
                 $"{percentage}%",
                 charging,
                 "Данные получены из HID-отчёта; протокол требует проверки на этом экземпляре.");
+            return _lastKnownStatus;
         }
         catch (TimeoutException)
         {
+            if (_lastKnownStatus is not null)
+            {
+                return _lastKnownStatus with
+                {
+                    Connection = "Приёмник подключён · нет нового отчёта",
+                    Detail = "Показано последнее достоверное значение: мышь могла перейти в энергосбережение."
+                };
+            }
+
             return new DeviceStatus(
                 "Attack Shark R1",
                 "Приёмник найден · нет ответа",
                 "Недоступно",
                 "Неизвестно",
-                "Мышь могла перейти в энергосбережение. Последний заряд не подменяется новым.");
+                "Ожидание первого отчёта батареи от мыши.");
         }
         catch (IOException ex)
         {
