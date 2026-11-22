@@ -16,7 +16,7 @@ internal static class ThemeService
 
         if (SystemParameters.HighContrast)
         {
-            resources["WindowBrush"] = FrozenBrush(WpfWpfSystemColors.WindowColor);
+            resources["WindowBrush"] = FrozenBrush(WpfSystemColors.WindowColor);
             resources["SurfaceBrush"] = FrozenBrush(WpfSystemColors.WindowColor);
             resources["TextBrush"] = FrozenBrush(WpfSystemColors.WindowTextColor);
             resources["MutedBrush"] = FrozenBrush(WpfSystemColors.GrayTextColor);
