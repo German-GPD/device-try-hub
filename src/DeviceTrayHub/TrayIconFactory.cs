@@ -16,10 +16,10 @@ internal static class TrayIconFactory
         {
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
             graphics.Clear(Color.Transparent);
-            graphics.FillRoundedRectangle(background, new Rectangle(1, 1, 30, 30), 8);
-            graphics.DrawRoundedRectangle(outline, new Rectangle(7, 9, 17, 14), 3);
+            FillRoundedRectangle(graphics, background, new Rectangle(1, 1, 30, 30), 8);
+            DrawRoundedRectangle(graphics, outline, new Rectangle(7, 9, 17, 14), 3);
             graphics.FillRectangle(accent, new Rectangle(10, 12, 8, 8));
-            graphics.FillRoundedRectangle(accent, new Rectangle(24, 13, 3, 6), 1);
+            FillRoundedRectangle(graphics, accent, new Rectangle(24, 13, 3, 6), 1);
         }
 
         var handle = bitmap.GetHicon();
@@ -38,13 +38,13 @@ internal static class TrayIconFactory
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool DestroyIcon(IntPtr handle);
 
-    private static void FillRoundedRectangle(this Graphics graphics, Brush brush, Rectangle bounds, int radius)
+    private static void FillRoundedRectangle(Graphics graphics, Brush brush, Rectangle bounds, int radius)
     {
         using var path = RoundedRectangle(bounds, radius);
         graphics.FillPath(brush, path);
     }
 
-    private static void DrawRoundedRectangle(this Graphics graphics, Pen pen, Rectangle bounds, int radius)
+    private static void DrawRoundedRectangle(Graphics graphics, Pen pen, Rectangle bounds, int radius)
     {
         using var path = RoundedRectangle(bounds, radius);
         graphics.DrawPath(pen, path);
