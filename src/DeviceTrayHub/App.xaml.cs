@@ -40,8 +40,6 @@ public partial class App : Application
         Microsoft.Win32.SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
 
         _window = new MainWindow();
-        _window.Show();
-        _window.Hide();
 
         var menu = new ContextMenuStrip();
         menu.Items.Add("Открыть Device Tray Hub", null, (_, _) => ShowWindow());
