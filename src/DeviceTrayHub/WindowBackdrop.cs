@@ -12,8 +12,7 @@ internal static class WindowBackdrop
 
     public static void Apply(Window? window)
     {
-        if (window is null || !window.IsLoaded && !new WindowInteropHelper(window).Handle.Equals(IntPtr.Zero))
-            return;
+        if (window is null) return;
 
         var handle = new WindowInteropHelper(window).Handle;
         if (handle == IntPtr.Zero) return;
