@@ -24,6 +24,8 @@ public partial class App : Application
         }
 
         ThemeService.Apply();
+        Microsoft.Win32.SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
+
         _window = new MainWindow();
         _window.Show();
         _window.Hide();
