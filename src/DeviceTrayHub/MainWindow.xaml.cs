@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -10,6 +11,7 @@ public partial class MainWindow : Window
 {
     private readonly DispatcherTimer _pollTimer;
     private bool _refreshInProgress;
+    private bool _allowClose;
 
     public MainWindow()
     {
@@ -115,6 +117,20 @@ public partial class MainWindow : Window
         {
             _refreshInProgress = false;
         }
+    }
+
+    public void AllowClose() => _allowClose = true;
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        if (!_allowClose)
+        {
+            e.Cancel = true;
+            Hide();
+            return;
+        }
+
+        base.OnClosing(e);
     }
 
     private void Header_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
