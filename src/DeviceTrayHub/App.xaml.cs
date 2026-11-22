@@ -107,6 +107,7 @@ public partial class App : Application
         if (_trayIcon is not null)
         {
             _trayIcon.Visible = false;
+            _trayIcon.ContextMenuStrip?.Dispose();
             _trayIcon.Dispose();
         }
         _trayIconImage?.Dispose();
