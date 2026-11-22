@@ -4,6 +4,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $project = Join-Path $repoRoot "src/DeviceTrayHub/DeviceTrayHub.csproj"
 $tests = Join-Path $repoRoot "tests/DeviceTrayHub.Tests/DeviceTrayHub.Tests.csproj"
 $publishDir = Join-Path $repoRoot "artifacts/publish"
+$installerOutput = Join-Path $repoRoot "artifacts/installer"
 $installerScript = Join-Path $repoRoot "installer/DeviceTrayHub.iss"
 $iscc = Join-Path ($env:ProgramFiles + " (x86)") "Inno Setup 6/ISCC.exe"
 
@@ -29,6 +30,8 @@ try {
 
     dotnet test $tests --configuration Release
     if ($LASTEXITCODE -ne 0) { throw "Unit tests failed." }
+
+    New-Item -ItemType Directory -Force -Path $installerOutput | Out-Null
 
     if (Test-Path $publishDir) {
         Remove-Item $publishDir -Recurse -Force
