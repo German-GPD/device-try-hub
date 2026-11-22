@@ -9,14 +9,28 @@ internal static class ThemeService
     public static void Apply()
     {
         var resources = Application.Current.Resources;
-        var isLight = true;
 
+        if (SystemParameters.HighContrast)
+        {
+            resources["WindowBrush"] = FrozenBrush(SystemColors.WindowColor);
+            resources["SurfaceBrush"] = FrozenBrush(SystemColors.WindowColor);
+            resources["TextBrush"] = FrozenBrush(SystemColors.WindowTextColor);
+            resources["MutedBrush"] = FrozenBrush(SystemColors.GrayTextColor);
+            resources["BorderBrush"] = FrozenBrush(SystemColors.WindowTextColor);
+            resources["AccentBrush"] = FrozenBrush(SystemColors.HighlightColor);
+            return;
+        }
+
+        var isLight = true;
         try
         {
             using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
             isLight = Convert.ToInt32(key?.GetValue("AppsUseLightTheme", 1)) != 0;
         }
-        catch { /* Keep the accessible light fallback. */ }
+        catch
+        {
+            // Keep the accessible light fallback.
+        }
 
         var accent = ReadAccent();
         resources["WindowBrush"] = Brush(isLight ? "#FFF4F5F7" : "#FF17191D");
@@ -24,11 +38,18 @@ internal static class ThemeService
         resources["TextBrush"] = Brush(isLight ? "#FF202329" : "#FFF1F2F4");
         resources["MutedBrush"] = Brush(isLight ? "#FF737983" : "#FFA5ABB4");
         resources["BorderBrush"] = Brush(isLight ? "#FFE3E6EA" : "#FF353A42");
-        resources["AccentBrush"] = new SolidColorBrush(accent);
+        resources["AccentBrush"] = FrozenBrush(accent);
     }
 
     private static SolidColorBrush Brush(string value) =>
-        new((Color)ColorConverter.ConvertFromString(value));
+        FrozenBrush((Color)ColorConverter.ConvertFromString(value));
+
+    private static SolidColorBrush FrozenBrush(Color color)
+    {
+        var brush = new SolidColorBrush(color);
+        brush.Freeze();
+        return brush;
+    }
 
     private static Color ReadAccent()
     {
@@ -45,6 +66,7 @@ internal static class ThemeService
             }
         }
         catch { }
+
         return Color.FromRgb(46, 139, 114);
     }
 }
