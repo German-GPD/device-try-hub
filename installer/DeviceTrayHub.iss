@@ -31,7 +31,9 @@ Source: "..\artifacts\publish\*"; DestDir: "{app}"; Flags: ignoreversion recurse
 
 [Icons]
 Name: "{group}\German'$ Device Tray Hub"; Filename: "{app}\{#MyAppExeName}"
-Name: "{userstartup}\German'$ Device Tray Hub"; Filename: "{app}\{#MyAppExeName}"; Tasks: startup
+
+[Registry]
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "GermanDeviceTrayHub"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue; Tasks: startup
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Запустить German'$ Device Tray Hub"; Flags: nowait postinstall skipifsilent
