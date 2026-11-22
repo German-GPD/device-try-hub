@@ -43,7 +43,11 @@ public partial class App : Application
         _window = new MainWindow();
 
         var menu = new ContextMenuStrip();
-        menu.Items.Add("Открыть Device Tray Hub", null, (_, _) => ShowWindow());
+        menu.Opening += (_, _) =>
+        {
+            if (_window is not null) _ = _window.RefreshForActivationAsync();
+        };
+        menu.Items.Add("Открыть Device Tray Hub", null, (_, _) => ShowWindow(refresh: false));
         menu.Items.Add("Выход", null, (_, _) =>
         {
             _window?.AllowClose();
@@ -98,11 +102,12 @@ public partial class App : Application
             Dispatcher.BeginInvoke(new Action(ThemeService.Apply));
     }
 
-    private void ShowWindow()
+    private void ShowWindow(bool refresh = true)
     {
         if (_window is null) return;
         _window.Show();
         _window.Activate();
+        if (refresh) _ = _window.RefreshForActivationAsync();
     }
 
     protected override void OnExit(ExitEventArgs e)
