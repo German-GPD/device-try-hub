@@ -37,7 +37,10 @@
                                VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
-            <StackPanel Grid.Row="2" x:Name="DeviceList"/>
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="DeviceList"/>
+            </ScrollViewer>
             <Grid Grid.Row="3" Margin="0,14,0,0">
                 <TextBlock Text="Обновление каждые 5 секунд" FontSize="11"
                            Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
