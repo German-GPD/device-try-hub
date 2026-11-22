@@ -10,6 +10,7 @@ public partial class App : Application
 {
     private Mutex? _mutex;
     private NotifyIcon? _trayIcon;
+    private Icon? _trayIconImage;
     private MainWindow? _window;
 
     protected override void OnStartup(StartupEventArgs e)
@@ -38,7 +39,7 @@ public partial class App : Application
 
         _trayIcon = new NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = _trayIconImage = TrayIconFactory.Create(),
             Text = "German'$ Device Tray Hub",
             ContextMenuStrip = menu,
             Visible = true
@@ -51,7 +52,8 @@ public partial class App : Application
 
     private void OnUserPreferenceChanged(object? sender, UserPreferenceChangedEventArgs e)
     {
-        Dispatcher.Invoke(ThemeService.Apply);
+        if (!Dispatcher.HasShutdownStarted)
+            Dispatcher.BeginInvoke(ThemeService.Apply);
     }
 
     private void ShowWindow()
@@ -68,6 +70,7 @@ public partial class App : Application
             _trayIcon.Visible = false;
             _trayIcon.Dispose();
         }
+        _trayIconImage?.Dispose();
         Microsoft.Win32.SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         _mutex?.ReleaseMutex();
         _mutex?.Dispose();
