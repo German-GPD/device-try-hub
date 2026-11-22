@@ -6,16 +6,9 @@ namespace DeviceTrayHub.Tests;
 public sealed class KeychronBridgeStateParserTests
 {
     [Fact]
-    public void DetectsConnectedKeychronDeviceInReceiverSlot()
+    public void DetectsActiveLinkReceiverStatusReport()
     {
-        byte[] report = new byte[18];
-        report[0] = 0x00;
-        report[1] = 0xB2;
-        report[3] = 0x34;
-        report[4] = 0x34;
-        report[5] = 0x0A;
-        report[6] = 0x33;
-        report[7] = 0x01;
+        byte[] report = [0x54, 0x02, 0x01, 0x00, 0x00];
 
         var valid = KeychronBridgeStateParser.TryParse(report, out var connected);
 
@@ -24,14 +17,9 @@ public sealed class KeychronBridgeStateParserTests
     }
 
     [Fact]
-    public void ReportsDisconnectedWhenNoKeychronSlotIsActive()
+    public void ReportsNoActiveLinkWhenReceiverFlagIsZero()
     {
-        byte[] report = new byte[18];
-        report[0] = 0x00;
-        report[1] = 0xB2;
-        report[3] = 0x34;
-        report[4] = 0x34;
-        report[7] = 0x00;
+        byte[] report = [0x54, 0x02, 0x00, 0x00, 0x00];
 
         var valid = KeychronBridgeStateParser.TryParse(report, out var connected);
 
@@ -40,20 +28,12 @@ public sealed class KeychronBridgeStateParserTests
     }
 
     [Fact]
-    public void RejectsWrongReportIdCommandAndShortPackets()
+    public void RejectsWrongReportIdAndShortPackets()
     {
-        byte[] wrongId = new byte[18];
-        wrongId[0] = 0x01;
-        wrongId[1] = 0xB2;
+        byte[] wrongReport = [0x00, 0xB2, 0x01, 0x00];
+        byte[] shortReport = [0x54, 0x02];
 
-        byte[] wrongCommand = new byte[18];
-        wrongCommand[0] = 0x00;
-        wrongCommand[1] = 0xB1;
-
-        byte[] shortReport = [0x00, 0xB2, 0x00];
-
-        Assert.False(KeychronBridgeStateParser.TryParse(wrongId, out _));
-        Assert.False(KeychronBridgeStateParser.TryParse(wrongCommand, out _));
+        Assert.False(KeychronBridgeStateParser.TryParse(wrongReport, out _));
         Assert.False(KeychronBridgeStateParser.TryParse(shortReport, out _));
     }
 }
