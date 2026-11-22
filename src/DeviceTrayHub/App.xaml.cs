@@ -47,6 +47,11 @@ public partial class App : Application
         };
     }
 
+    private void OnUserPreferenceChanged(object? sender, UserPreferenceChangedEventArgs e)
+    {
+        Dispatcher.Invoke(ThemeService.Apply);
+    }
+
     private void ShowWindow()
     {
         if (_window is null) return;
