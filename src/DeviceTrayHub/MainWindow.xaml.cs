@@ -22,11 +22,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         SourceInitialized += (_, _) => WindowBackdrop.Apply(this);
-        IsVisibleChanged += async (_, _) =>
+        IsVisibleChanged += (_, _) =>
         {
-            if (!IsVisible) return;
-            PositionNearTray();
-            await RefreshDevicesAsync();
+            if (IsVisible) PositionNearTray();
         };
         Loaded += (_, _) => UpdateStartupButtonText();
         UpdateStartupButtonText();
@@ -39,6 +37,8 @@ public partial class MainWindow : Window
         Left = work.Right - Width - 12;
         Top = work.Bottom - Height - 12;
     }
+
+    public Task RefreshForActivationAsync() => RefreshDevicesAsync();
 
     private async Task RefreshDevicesAsync()
     {
