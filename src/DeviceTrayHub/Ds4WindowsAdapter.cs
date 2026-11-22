@@ -50,7 +50,7 @@ internal static class Ds4WindowsAdapter
 
         var connection = connectionText switch
         {
-            "Bluetooth" => "Подключён · Bluetooth",
+            "BT" => "Подключён · Bluetooth",
             "USB" => "Подключён · USB",
             _ => null
         };
