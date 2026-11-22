@@ -1,5 +1,9 @@
 # German'$ Device Tray Hub
 
+[![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-2563eb?style=for-the-badge&logo=windows)](https://github.com/German-GPD/device-try-hub/actions/workflows/build.yml)
+
+> Open the latest successful **Build Windows installer** run, then download the `German-Device-Tray-Hub-Setup` artifact. The installer is published by GitHub Actions after the build, tests, and packaging steps all pass. If no successful run is available yet, the installer is not ready to download.
+
 A lightweight Windows tray application for viewing the connection and battery state of selected wireless peripherals from one compact popup.
 
 ## Current project status
