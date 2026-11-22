@@ -18,17 +18,19 @@ The current branch contains the WPF tray application, system theme/accent integr
 
 ## Implemented
 
-- One notification-area icon; left-click opens the compact device popup.
+- One custom-drawn notification-area icon; left-click opens the compact device popup.
 - Context menu with Open and Exit.
 - Single-instance process guard.
 - Popup closes when it loses focus.
 - Light/dark mode follows the Windows app theme.
 - Accent color is read from the current Windows user theme and refreshed after Windows preference changes.
+- Windows high-contrast colors take priority for accessibility.
 - Optional per-user startup registration; no administrator permission is required.
 - Device polling runs off the UI thread and avoids overlapping refresh cycles.
 - **Attack Shark R1 (experimental):** reads the wireless receiver's HID input report for VID/PID `1D57:FA60`, interface 2, validates report ID/device/status bytes, and decodes battery and known charging flags. If the mouse sleeps, the last confirmed value is retained; disconnecting the receiver clears it.
 - **DualShock 4:** reads battery, charging, and connection type from a running `DS4Windows.exe` process using its documented read-only IPC query command. The first controller slot is used.
 - Self-contained x64 publish and Inno Setup installer pipeline.
+- Unit tests cover R1 report signature validation, charge scaling, and charging-flag decoding.
 
 ## Hardware notes
 
@@ -78,6 +80,7 @@ Requirements: Windows 11 x64, .NET 10 SDK, and Inno Setup 6.
 ```powershell
 dotnet restore src/DeviceTrayHub/DeviceTrayHub.csproj
 dotnet build src/DeviceTrayHub/DeviceTrayHub.csproj -c Release
+dotnet test tests/DeviceTrayHub.Tests/DeviceTrayHub.Tests.csproj -c Release
 dotnet publish src/DeviceTrayHub/DeviceTrayHub.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
@@ -103,4 +106,4 @@ GitHub Actions builds the Windows application and packages a setup executable as
 
 ## License
 
-Project license: not decided yet. Third-party dependencies retain their own licenses.
+Project license: not decided yet. Third-party dependencies and protocol references are documented in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
