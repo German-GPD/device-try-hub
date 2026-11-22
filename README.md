@@ -1,64 +1,85 @@
 # German'$ Device Tray Hub
 
-A lightweight Windows system-tray utility for monitoring the battery and connection state of selected wireless peripherals.
+A lightweight Windows tray application for viewing the connection and battery state of selected wireless peripherals from one compact popup.
 
-The goal is to give each supported device its own tray icon, making it easy to see whether it is connected, how much battery remains, and whether it is charging — without opening several manufacturer utilities.
+## Current project status
 
-## Initial Device Support
+**Early implementation — UI and installer pipeline are being built. Hardware telemetry is not implemented yet.**
 
-The initial development scope is intentionally limited to the hardware currently available for testing:
+The current branch contains the first WPF application shell, tray integration, Windows theme/accent detection, a conservative device-status model, an Inno Setup installer definition, and a Windows CI build workflow. The three device rows intentionally show that hardware reporting is pending; no battery values or connection states are fabricated.
 
-| Device | Connection | Planned integration |
+## Target devices
+
+| Device | Connection | Integration status |
 | --- | --- | --- |
-| Keychron K3 Max | 2.4 GHz USB receiver | Device-specific HID investigation |
-| Attack Shark R1 | 2.4 GHz USB receiver | Device-specific HID investigation |
-| Sony DualShock 4 (DS4) | Bluetooth USB adapter | DS4Windows integration / Windows device APIs |
+| Keychron K3 Max | 2.4 GHz USB receiver | HID protocol investigation required |
+| Attack Shark R1 | 2.4 GHz USB receiver | HID protocol investigation required |
+| Sony DualShock 4 | Bluetooth USB adapter / DS4Windows | Integration interface still needs verification |
 
-Support for other devices is not currently planned or guaranteed. Additional models may be considered after the initial devices are implemented and tested.
+A USB receiver does not automatically expose battery information to Windows. The device firmware and receiver protocol must provide a reliable report. Battery percentage and charging state will remain unavailable until confirmed against the actual hardware.
 
-## Planned Features
+## Current implementation
 
-- A separate system-tray icon for each supported device.
-- Battery percentage, when the device exposes reliable battery information.
-- Connection state: connected or disconnected.
-- Charging state: charging, not charging, or unknown when the hardware does not report it.
-- Automatic device detection and periodic status updates.
-- Clear indication when a device is unavailable or its battery level cannot be read.
-- Optional launch at Windows sign-in.
-- A small settings window with minimal background resource usage.
+- One notification-area icon; left-click opens the compact device popup.
+- Context menu with Open and Exit.
+- Single-instance process guard.
+- Popup closes when it loses focus.
+- Light/dark mode follows the Windows app theme.
+- Accent color is read from the current Windows user theme and refreshed after Windows preference changes.
+- Optional per-user startup registration; no administrator permission is required.
+- Self-contained x64 publish and Inno Setup installer pipeline.
+- No background polling loop is enabled until real device adapters are ready.
 
-> **Hardware limitation:** A USB receiver does not automatically expose battery information to Windows. Battery reporting and charging detection depend on each device's firmware and communication protocol. The application will not invent or estimate battery percentages; unavailable values will be shown as unknown.
+## Planned work
+
+1. Identify the exact USB VID/PID and HID interfaces for the K3 Max and R1 receivers.
+2. Inspect device reports safely and implement model-specific battery/charging adapters only where data is documented or verified.
+3. Verify the available DS4Windows integration surface and compare it with Windows Bluetooth device information.
+4. Add settings for refresh behavior, startup, and diagnostics.
+5. Add device reconnect handling, bounded polling, structured logs, and failure recovery.
+6. Test on the actual devices and Windows 11 before marking any model as supported.
+7. Add signed releases and an update mechanism after the installer is stable.
 
 ## Technology
 
-The planned implementation is based on:
+- C# / WPF on **.NET 10 LTS**
+- Windows notification-area integration
+- Windows Registry for per-user theme, accent, and startup preferences
+- Inno Setup for the Windows installer
+- GitHub Actions for Windows x64 build and installer packaging
 
-- **C# / .NET** — application logic.
-- **WPF / XAML** — desktop interface and settings.
-- **Windows APIs (Win32)** — device discovery and system integration.
-- **HID** — communication with compatible USB receivers and peripherals.
-- **Windows Bluetooth APIs** — Bluetooth device information where available.
-- **DS4Windows** — integration point for the DualShock 4 workflow, subject to the available interface and reported data.
+.NET 10 is used because it is the current LTS line. See the [official .NET support policy](https://learn.microsoft.com/dotnet/core/releases-and-support).
 
-The exact framework target and device-specific libraries will be finalized during implementation and hardware testing.
+## Build
+
+Requirements: Windows 11 x64, .NET 10 SDK, and Inno Setup 6.
+
+\`\`\`powershell
+dotnet restore src/DeviceTrayHub/DeviceTrayHub.csproj
+dotnet build src/DeviceTrayHub/DeviceTrayHub.csproj -c Release
+dotnet publish src/DeviceTrayHub/DeviceTrayHub.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+\`\`\`
+
+Then compile the installer:
+
+\`\`\`powershell
+iscc installer/DeviceTrayHub.iss
+\`\`\`
+
+GitHub Actions runs the Windows build and publishes the setup executable as a workflow artifact.
 
 ## Platform
 
-- Windows 10 / Windows 11
-- x64
+- Primary target: Windows 11 x64.
+- Windows 10 compatibility is not promised by the current .NET 10 target; it requires a separate compatibility decision and test matrix.
 
-## Development Status
+## Reliability policy
 
-**Early planning / initial repository stage.**
-
-The repository currently documents the project scope. Device communication, battery reporting, tray icons, and the user interface still need to be implemented and verified on the actual hardware.
-
-## Scope and Compatibility
-
-This is a device-specific utility, not a universal peripheral manager. A device will only be marked as supported after its detection and reported status have been tested.
-
-If a device does not provide a reliable battery or charging value, the application will show that the information is unavailable instead of displaying a guessed value.
+- Unknown means unknown — never estimate a battery percentage.
+- A device is not considered supported until detection and telemetry have been tested on the physical model and receiver.
+- Missing charging information is displayed as unavailable, not inferred from battery movement.
+- Device communication must use bounded polling and must not block the UI thread.
 
 ## License
 
-License: not decided yet.
+Not decided yet.
