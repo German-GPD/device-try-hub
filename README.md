@@ -10,7 +10,7 @@ A lightweight Windows tray application for viewing the connection and battery st
 
 **Early implementation. The application shell and three device adapters are in progress; hardware validation is still required.**
 
-The current branch contains the WPF tray application, system theme/accent integration, per-user startup, asynchronous polling, an experimental Keychron Link receiver adapter, an experimental Attack Shark R1 HID adapter, a DS4Windows IPC adapter, an Inno Setup installer definition, and a Windows x64 build workflow.
+The current branch contains the WPF tray application, system theme/accent integration, per-user startup, event-driven device refresh, an experimental Keychron Link receiver adapter, an experimental Attack Shark R1 HID adapter, a DS4Windows IPC adapter, an Inno Setup installer definition, and a Windows x64 build workflow.
 
 ## Target devices
 
@@ -30,7 +30,7 @@ The current branch contains the WPF tray application, system theme/accent integr
 - Accent color is read from the current Windows user theme and refreshed after Windows preference changes.
 - Windows high-contrast colors take priority for accessibility.
 - Optional per-user startup registration; no administrator permission is required.
-- Device polling runs off the UI thread and avoids overlapping refresh cycles.
+- Device status refresh runs only when the tray menu or popup is opened; there is no periodic timer. HID and DS4Windows queries run off the UI thread and overlapping refreshes are prevented.
 - **Keychron K3 Max (experimental):** probes Keychron Link receivers (VID/PID `3434:D030` / `3434:D031`) using the receiver feature-report `0x51/0x01` setup, output command `B2 01`, and input status report `0x54`. It does not claim a battery percentage because the exact battery response over this receiver path is not yet verified.
 - **Attack Shark R1 (experimental):** passively listens to the receiver's dedicated battery HID collection (`MI_02 / COL03`) for VID/PID `1D57:FA60`; it does not send commands to the mouse. It accepts only valid battery frames, reads the receiver's `0..100` charge byte without rescaling, and requires two matching consecutive readings to reject the one-off false 100% packet on reconnect. The last confirmed level is retained while the mouse sleeps; no percentage is invented when the receiver is absent.
 - **DualShock 4:** queries battery, charging, and connection type from running `DS4Windows.exe` through its read-only IPC on each tray activation (no 10-second stale cache). The adapter scans DS4Windows slots 1–4 for an active USB/Bluetooth controller; query output is drained asynchronously with a bounded timeout.
