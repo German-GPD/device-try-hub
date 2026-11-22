@@ -32,8 +32,8 @@ The current branch contains the WPF tray application, system theme/accent integr
 - Optional per-user startup registration; no administrator permission is required.
 - Device polling runs off the UI thread and avoids overlapping refresh cycles.
 - **Keychron K3 Max (experimental):** probes Keychron Link receivers (VID/PID `3434:D030` / `3434:D031`) with the read-only `FR_GET_STATE` command and reports whether a Keychron device is connected in a receiver slot. It does not claim a battery percentage because the exact battery response over this receiver path is not yet verified.
-- **Attack Shark R1 (experimental):** reads the wireless receiver's HID input report for VID/PID `1D57:FA60`, interface 2, validates report ID/device/status bytes, and decodes battery and known charging flags. If the mouse sleeps, the last confirmed value is retained; disconnecting the receiver clears it.
-- **DualShock 4:** reads battery, charging, and connection type from a running `DS4Windows.exe` process using its documented read-only IPC query command. The first controller slot is used.
+- **Attack Shark R1 (experimental):** passively listens to the receiver's dedicated battery HID collection (`MI_02 / COL03`) for VID/PID `1D57:FA60`; it does not send commands to the mouse. It accepts only valid battery frames, converts firmware's `0..10` or `0..100` charge format, and requires two matching consecutive readings to reject the one-off false 100% packet on reconnect. The last confirmed level is retained while the mouse sleeps; no percentage is invented when the receiver is absent.
+- **DualShock 4:** queries battery, charging, and connection type from running `DS4Windows.exe` through its read-only IPC on each tray activation (no 10-second stale cache). The first controller slot is used; query output is drained asynchronously with a bounded timeout.
 - Self-contained x64 publish and Inno Setup installer pipeline.
 - PowerShell build script checks the SDK, builds, runs tests, publishes, and packages the installer.
 - Unit tests cover Keychron receiver-state parsing and R1 report signature validation, charge scaling, and charging-flag decoding.
@@ -62,9 +62,9 @@ Reference: [Keychron Vial protocol notes — bridge/dongle](https://github.com/T
 
 ## Planned work
 
-1. Validate the R1 adapter against the actual receiver and mouse, including sleep, wake, charging, and disconnect behavior.
+1. Validate the R1 listener against the user's actual receiver and mouse, including sleep, wake, charging, and disconnect behavior.
 2. Confirm the DS4Windows query output on the installed DS4Windows version and test disconnect/reconnect and charging states.
-3. Continue investigating a reliable K3 Max battery source while preserving the user's 2.4 GHz connection; receiver connection detection is already implemented experimentally.
+3. Continue investigating a reliable K3 Max battery source while preserving the user's 2.4 GHz connection. The currently verified FR receiver state command only confirms paired-device connection; it does not expose a battery percentage, so the app intentionally does not guess one.
 4. Add settings for polling interval, DS4 controller slot, startup, and diagnostics.
 5. Add device reconnect handling, bounded polling, structured logs, and failure recovery.
 6. Improve tray icon, popup animation, accessibility, and high-contrast support.
