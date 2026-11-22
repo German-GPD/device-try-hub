@@ -1,4 +1,5 @@
 using HidSharp;
+using System.IO;
 
 namespace German.DeviceTrayHub;
 
