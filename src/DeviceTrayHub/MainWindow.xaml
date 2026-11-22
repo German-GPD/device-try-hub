@@ -17,7 +17,7 @@
             <Grid Grid.Row="0" Margin="0,0,0,16" MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <StackPanel>
                     <TextBlock Text="DEVICE TRAY HUB" FontSize="10" FontWeight="SemiBold"
-                               Foreground="{DynamicResource AccentBrush}" CharacterSpacing="150"/>
+                               Foreground="{DynamicResource AccentBrush}"/>
                     <TextBlock Text="Ваши устройства" FontSize="23" FontWeight="SemiBold" Margin="0,4,0,0"/>
                     <TextBlock Text="Состояние подключённых устройств" FontSize="12"
                                Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,0"/>
