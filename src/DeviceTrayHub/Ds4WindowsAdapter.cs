@@ -7,24 +7,10 @@ internal static class Ds4WindowsAdapter
 {
     private const string ProcessName = "DS4Windows";
     private const int ControllerSlot = 1;
-    private const int QueryTimeoutMilliseconds = 1200;
-    private static readonly object CacheLock = new();
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(10);
-    private static DateTime _lastQueryUtc = DateTime.MinValue;
-    private static DeviceStatus? _cachedStatus;
+    private const int QueryTimeoutMilliseconds = 3000;
 
-    public static DeviceStatus ReadStatus()
-    {
-        lock (CacheLock)
-        {
-            if (_cachedStatus is not null && DateTime.UtcNow - _lastQueryUtc < CacheDuration)
-                return _cachedStatus;
-
-            _cachedStatus = ReadStatusCore();
-            _lastQueryUtc = DateTime.UtcNow;
-            return _cachedStatus;
-        }
-    }
+    // Query on each tray activation so the displayed value is a fresh IPC response.
+    public static DeviceStatus ReadStatus() => ReadStatusCore();
 
     private static DeviceStatus ReadStatusCore()
     {
@@ -132,13 +118,18 @@ internal static class Ds4WindowsAdapter
             using var process = Process.Start(startInfo);
             if (process is null) return string.Empty;
 
+            using var process = Process.Start(startInfo);
+            if (process is null) return string.Empty;
+
+            // Drain stdout concurrently; waiting first can block a child that fills the pipe.
+            var outputTask = process.StandardOutput.ReadToEndAsync();
             if (!process.WaitForExit(QueryTimeoutMilliseconds))
             {
                 process.Kill(entireProcessTree: true);
                 return string.Empty;
             }
 
-            return process.StandardOutput.ReadToEnd().Trim();
+            return outputTask.GetAwaiter().GetResult().Trim();
         }
         catch
         {
