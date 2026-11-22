@@ -19,6 +19,8 @@ public partial class App : Application
         _mutex = new Mutex(true, @"Local\GermanDeviceTrayHub", out var createdNew);
         if (!createdNew)
         {
+            _mutex.Dispose();
+            _mutex = null;
             Shutdown();
             return;
         }
