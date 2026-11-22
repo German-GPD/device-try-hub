@@ -10,18 +10,20 @@ internal static class TrayIconFactory
     {
         using var bitmap = new Bitmap(32, 32);
         using (var graphics = Graphics.FromImage(bitmap))
-        using (var pen = new Pen(Color.White, 2.4f))
+        using (var pen = new Pen(Color.White, 2.2f))
+        using (var dot = new SolidBrush(Color.White))
         {
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
             graphics.Clear(Color.Transparent);
             pen.StartCap = LineCap.Round;
             pen.EndCap = LineCap.Round;
 
-            // Minimal display/device glyph; transparent canvas, white strokes only.
-            graphics.DrawRoundedRectangle(pen, new Rectangle(5, 5, 22, 16), 3);
-            graphics.DrawLine(pen, 16, 21, 16, 26);
-            graphics.DrawLine(pen, 11, 27, 21, 27);
-            graphics.DrawLine(pen, 10, 9, 10, 17);
+            // Minimal white device-list glyph, designed to remain clear at 16x16.
+            graphics.DrawRoundedRectangle(pen, new Rectangle(5, 5, 22, 22), 4);
+            graphics.FillEllipse(dot, 10, 11, 3, 3);
+            graphics.FillEllipse(dot, 10, 18, 3, 3);
+            graphics.DrawLine(pen, 16, 12.5f, 23, 12.5f);
+            graphics.DrawLine(pen, 16, 19.5f, 23, 19.5f);
         }
 
         var handle = bitmap.GetHicon();
