@@ -86,7 +86,7 @@ public partial class App : Application
                 }
 
                 if (Dispatcher.HasShutdownStarted) return;
-                Dispatcher.BeginInvoke(new Action(ShowWindow));
+                Dispatcher.BeginInvoke(new Action(() => ShowWindow()));
             }
         })
         {
