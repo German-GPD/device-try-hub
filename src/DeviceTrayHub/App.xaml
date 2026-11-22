@@ -10,7 +10,7 @@
         <SolidColorBrush x:Key="AccentBrush" Color="#FF2E8B72"/>
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-            <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI"/>
+            <Setter Property="FontFamily" Value="Segoe UI Variable Text"/>
         </Style>
         <Style TargetType="Button">
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
