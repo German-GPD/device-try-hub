@@ -51,7 +51,7 @@ internal static class Ds4WindowsAdapter
         var chargingText = Query(executable, "Charging");
         var connectionText = Query(executable, "ConnType");
 
-        var connection = connectionText switch
+        var connection = connectionText.Trim().ToUpperInvariant() switch
         {
             "BT" => "Подключён · Bluetooth",
             "USB" => "Подключён · USB",
@@ -68,9 +68,12 @@ internal static class Ds4WindowsAdapter
                 "DS4Windows не подтвердил активное USB- или Bluetooth-подключение.");
         }
 
-        var charging = bool.TryParse(chargingText, out var isCharging)
-            ? (isCharging ? "Заряжается" : "Не заряжается")
-            : "Неизвестно";
+        var charging = chargingText.Trim().ToLowerInvariant() switch
+        {
+            "true" or "1" => "Заряжается",
+            "false" or "0" => "Не заряжается",
+            _ => "Неизвестно"
+        };
 
         return new DeviceStatus(
             "Sony DualShock 4",
