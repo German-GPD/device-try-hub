@@ -15,5 +15,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="HidSharp" Version="2.6.4" />
+    <InternalsVisibleTo Include="DeviceTrayHub.Tests" />
   </ItemGroup>
 </Project>
