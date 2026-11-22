@@ -9,9 +9,6 @@ internal static class R1BatteryAdapter
     private const string InterfaceMarker = "&mi_02";
     private const int ReadTimeoutMilliseconds = 1200;
 
-    private const byte BatteryReportId = 0x03;
-    private const byte R1DeviceId = 0x10;
-    private const byte BatteryReady = 0x40;
     private static DeviceStatus? _lastKnownStatus;
 
     public static DeviceStatus ReadStatus()
