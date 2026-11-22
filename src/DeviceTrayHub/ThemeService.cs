@@ -16,12 +16,12 @@ internal static class ThemeService
 
         if (SystemParameters.HighContrast)
         {
-            resources["WindowBrush"] = FrozenBrush(WpfSystemColors.WindowColor);
-            resources["SurfaceBrush"] = FrozenBrush(SystemColors.WindowColor);
-            resources["TextBrush"] = FrozenBrush(SystemColors.WindowTextColor);
-            resources["MutedBrush"] = FrozenBrush(SystemColors.GrayTextColor);
-            resources["BorderBrush"] = FrozenBrush(SystemColors.WindowTextColor);
-            resources["AccentBrush"] = FrozenBrush(SystemColors.HighlightColor);
+            resources["WindowBrush"] = FrozenBrush(WpfWpfSystemColors.WindowColor);
+            resources["SurfaceBrush"] = FrozenBrush(WpfSystemColors.WindowColor);
+            resources["TextBrush"] = FrozenBrush(WpfSystemColors.WindowTextColor);
+            resources["MutedBrush"] = FrozenBrush(WpfSystemColors.GrayTextColor);
+            resources["BorderBrush"] = FrozenBrush(WpfSystemColors.WindowTextColor);
+            resources["AccentBrush"] = FrozenBrush(WpfSystemColors.HighlightColor);
             return;
         }
 
