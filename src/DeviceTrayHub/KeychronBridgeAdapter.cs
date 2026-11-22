@@ -6,7 +6,8 @@ internal static class KeychronBridgeAdapter
 {
     private const int VendorId = 0x3434;
     private static readonly int[] ReceiverProductIds = [0xD030, 0xD031];
-    private const int ReadTimeoutMilliseconds = 1000;
+    private const int ReadTimeoutMilliseconds = 300;
+    private const int MaxUnrelatedReports = 3;
 
     public static DeviceStatus ReadStatus()
     {
@@ -32,22 +33,17 @@ internal static class KeychronBridgeAdapter
             stream.ReadTimeout = ReadTimeoutMilliseconds;
             stream.WriteTimeout = ReadTimeoutMilliseconds;
 
-            // HIDSharp includes the report ID in byte 0; WebHID's reportId=0
-            // and 32-byte FR payload therefore become a 33-byte HID report.
-            var request = new byte[33];
-            request[0] = 0x00;
-            request[1] = 0xB2; // FR_GET_STATE (read-only)
-            stream.Write(request);
-
-            var response = stream.Read();
-            if (!KeychronBridgeStateParser.TryParse(response, out var connected))
+            // The documented flow negotiates receiver protocol before requesting slots.
+            if (SendReadCommand(stream, 0xB1) is null)
             {
-                return new DeviceStatus(
-                    "Keychron K3 Max",
-                    "Приёмник найден · нет ответа",
-                    "Недоступно",
-                    "Неизвестно",
-                    "Ответ Keychron Link не прошёл проверку формата.");
+                return ReceiverNoReply("Приёмник не ответил на проверку версии протокола.");
+            }
+
+            var response = SendReadCommand(stream, 0xB2);
+            if (response is null ||
+                !KeychronBridgeStateParser.TryParse(response, out var connected))
+            {
+                return ReceiverNoReply("Ответ Keychron Link не прошёл проверку формата.");
             }
 
             return new DeviceStatus(
@@ -55,16 +51,11 @@ internal static class KeychronBridgeAdapter
                 connected ? "Клавиатура отвечает · 2.4 GHz" : "Клавиатура не подключена",
                 "Недоступно",
                 "Неизвестно",
-                "Приёмник подтверждает состояние слота. Достоверный заряд батареи по этому каналу пока не подтверждён.");
+                "Приёмник подтвердил состояние слота. Достоверный заряд батареи по этому каналу пока не подтверждён.");
         }
         catch (TimeoutException)
         {
-            return new DeviceStatus(
-                "Keychron K3 Max",
-                "Приёмник найден · тайм-аут",
-                "Недоступно",
-                "Неизвестно",
-                "Keychron Link не ответил на запрос состояния.");
+            return ReceiverNoReply("Keychron Link не ответил на запрос состояния.");
         }
         catch (IOException ex)
         {
@@ -85,4 +76,36 @@ internal static class KeychronBridgeAdapter
                 $"Ошибка Keychron HID: {ex.Message}");
         }
     }
+
+    private static byte[]? SendReadCommand(HidStream stream, byte command)
+    {
+        var request = new byte[33];
+        request[0] = 0x00; // HID report ID
+        request[1] = command;
+        stream.Write(request);
+
+        for (var attempt = 0; attempt <= MaxUnrelatedReports; attempt++)
+        {
+            try
+            {
+                var report = stream.Read();
+                if (report.Length >= 2 && report[0] == 0x00 && report[1] == command)
+                    return report;
+            }
+            catch (TimeoutException)
+            {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private static DeviceStatus ReceiverNoReply(string detail) =>
+        new(
+            "Keychron K3 Max",
+            "Приёмник найден · нет ответа",
+            "Недоступно",
+            "Неизвестно",
+            detail);
 }
