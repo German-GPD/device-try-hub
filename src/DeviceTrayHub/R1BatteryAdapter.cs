@@ -8,6 +8,7 @@ internal static class R1BatteryAdapter
     private const int VendorId = 0x1D57;
     private const int WirelessProductId = 0xFA60;
     private const string InterfaceMarker = "&mi_02";
+    private const string BatteryCollectionMarker = "&col03";
     private const int ReadTimeoutMilliseconds = 3000;
 
     private static readonly object StateLock = new();
@@ -58,8 +59,8 @@ internal static class R1BatteryAdapter
                     .GetHidDevices(VendorId, WirelessProductId)
                     .FirstOrDefault(candidate =>
                         candidate.GetMaxInputReportLength() >= 5 &&
-                        candidate.UsagePage == 0x000A &&
-                        candidate.DevicePath.Contains(InterfaceMarker, StringComparison.OrdinalIgnoreCase));
+                        candidate.DevicePath.Contains(InterfaceMarker, StringComparison.OrdinalIgnoreCase) &&
+                        candidate.DevicePath.Contains(BatteryCollectionMarker, StringComparison.OrdinalIgnoreCase));
 
                 if (device is null)
                 {
