@@ -31,17 +31,14 @@ internal static class ThemeService
             using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
             isLight = Convert.ToInt32(key?.GetValue("AppsUseLightTheme", 1)) != 0;
         }
-        catch
-        {
-            // Keep the accessible light fallback.
-        }
+        catch { }
 
         var accent = ReadAccent();
-        resources["WindowBrush"] = Brush(isLight ? "#FFF4F5F7" : "#FF17191D");
-        resources["SurfaceBrush"] = Brush(isLight ? "#FFFFFFFF" : "#FF22252A");
+        resources["WindowBrush"] = Brush(isLight ? "#DDF7F8FA" : "#DD202328");
+        resources["SurfaceBrush"] = Brush(isLight ? "#BFFFFFFF" : "#B82B2F35");
         resources["TextBrush"] = Brush(isLight ? "#FF202329" : "#FFF1F2F4");
         resources["MutedBrush"] = Brush(isLight ? "#FF737983" : "#FFA5ABB4");
-        resources["BorderBrush"] = Brush(isLight ? "#FFE3E6EA" : "#FF353A42");
+        resources["BorderBrush"] = Brush(isLight ? "#66FFFFFF" : "#553F454D");
         resources["AccentBrush"] = FrozenBrush(accent);
     }
 
@@ -62,7 +59,6 @@ internal static class ThemeService
             using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\DWM");
             if (key?.GetValue("AccentColor") is int argb)
             {
-                // Windows stores this DWORD as ABGR; WPF expects ARGB.
                 var r = (byte)(argb & 0xFF);
                 var g = (byte)((argb >> 8) & 0xFF);
                 var b = (byte)((argb >> 16) & 0xFF);
@@ -71,6 +67,6 @@ internal static class ThemeService
         }
         catch { }
 
-        return MediaColor.FromRgb(46, 139, 114);
+        return MediaColor.FromRgb(58, 141, 114);
     }
 }
