@@ -40,6 +40,7 @@ internal static class ThemeService
         resources["MutedBrush"] = Brush(isLight ? "#FF737983" : "#FFA5ABB4");
         resources["BorderBrush"] = Brush(isLight ? "#55FFFFFF" : "#554F555E");
         resources["AccentBrush"] = FrozenBrush(accent);
+        WindowBackdrop.Apply(WpfApplication.Current.MainWindow as Window);
     }
 
     private static SolidColorBrush Brush(string value) =>
