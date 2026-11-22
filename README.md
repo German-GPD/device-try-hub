@@ -30,6 +30,7 @@ The current branch contains the WPF tray application, system theme/accent integr
 - **Attack Shark R1 (experimental):** reads the wireless receiver's HID input report for VID/PID `1D57:FA60`, interface 2, validates report ID/device/status bytes, and decodes battery and known charging flags. If the mouse sleeps, the last confirmed value is retained; disconnecting the receiver clears it.
 - **DualShock 4:** reads battery, charging, and connection type from a running `DS4Windows.exe` process using its documented read-only IPC query command. The first controller slot is used.
 - Self-contained x64 publish and Inno Setup installer pipeline.
+- PowerShell build script checks the SDK, builds, runs tests, publishes, and packages the installer.
 - Unit tests cover R1 report signature validation, charge scaling, and charging-flag decoding.
 
 ## Hardware notes
@@ -77,25 +78,29 @@ The keyboard supports 2.4 GHz, Bluetooth, and USB-C, but its battery reporting t
 
 Requirements: Windows 11 x64, .NET 10 SDK, and Inno Setup 6.
 
-```powershell
-dotnet restore src/DeviceTrayHub/DeviceTrayHub.csproj
-dotnet build src/DeviceTrayHub/DeviceTrayHub.csproj -c Release
-dotnet test tests/DeviceTrayHub.Tests/DeviceTrayHub.Tests.csproj -c Release
-dotnet publish src/DeviceTrayHub/DeviceTrayHub.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
-```
-
-Then compile the installer:
+Run PowerShell from the repository root:
 
 ```powershell
-iscc installer/DeviceTrayHub.iss
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\build-installer.ps1
 ```
 
-GitHub Actions builds the Windows application and packages a setup executable as a workflow artifact.
+The script restores dependencies, builds the app, runs unit tests, publishes a self-contained x64 executable, and compiles the installer. Output: `artifacts/installer/German-Device-Tray-Hub-Setup.exe`.
+
+GitHub Actions runs the same build/test/publish/installer pipeline and uploads the setup executable as a workflow artifact.
 
 ## Platform
 
 - Primary target: Windows 11 x64.
 - Windows 10 compatibility is not promised by the current .NET 10 target; it requires a separate compatibility decision and test matrix.
+
+## Privacy and permissions
+
+- No analytics, advertising, or telemetry is sent by the app.
+- No administrator rights or third-party device drivers are required.
+- The R1 reader only opens the matching HID interface and reads reports.
+- DS4Windows integration uses read-only local IPC queries.
+- Startup registration is per-user in HKCU; uninstall removes the installer-created startup entry.
 
 ## Reliability policy
 
