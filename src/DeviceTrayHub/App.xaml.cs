@@ -41,7 +41,10 @@ public partial class App : Application
             ContextMenuStrip = menu,
             Visible = true
         };
-        _trayIcon.DoubleClick += (_, _) => ShowWindow();
+        _trayIcon.MouseClick += (_, args) =>
+        {
+            if (args.Button == MouseButtons.Left) ShowWindow();
+        };
     }
 
     private void ShowWindow()
