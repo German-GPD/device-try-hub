@@ -43,7 +43,11 @@ public partial class App : Application
 
         var menu = new ContextMenuStrip();
         menu.Items.Add("Открыть Device Tray Hub", null, (_, _) => ShowWindow());
-        menu.Items.Add("Выход", null, (_, _) => Shutdown());
+        menu.Items.Add("Выход", null, (_, _) =>
+        {
+            _window?.AllowClose();
+            Shutdown();
+        });
 
         _trayIcon = new NotifyIcon
         {
