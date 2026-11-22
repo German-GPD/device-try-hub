@@ -97,7 +97,6 @@ internal static class Ds4WindowsAdapter
                 FileName = executable,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true,
                 CreateNoWindow = true
             };
             startInfo.ArgumentList.Add("-command");
