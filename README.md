@@ -1,64 +1,121 @@
 # German'$ Device Tray Hub
 
-A lightweight Windows system-tray utility for monitoring the battery and connection state of selected wireless peripherals.
+[![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-2563eb?style=for-the-badge&logo=windows)](https://github.com/German-GPD/device-try-hub/actions/runs/45054336195/artifacts/14766716430)
 
-The goal is to give each supported device its own tray icon, making it easy to see whether it is connected, how much battery remains, and whether it is charging — without opening several manufacturer utilities.
+> **Direct download:** the button downloads the installer package (`.zip`) from the latest verified successful build. Extract it and run `German-Device-Tray-Hub-Setup.exe`. GitHub Actions artifacts expire after 90 days; the download link must be refreshed when a newer build is published.
 
-## Initial Device Support
+A lightweight Windows tray application for viewing the connection and battery state of selected wireless peripherals from one compact popup.
 
-The initial development scope is intentionally limited to the hardware currently available for testing:
+## Current project status
 
-| Device | Connection | Planned integration |
+**Early implementation. The application shell and three device adapters are in progress; hardware validation is still required.**
+
+The current branch contains the WPF tray application, system theme/accent integration, per-user startup, event-driven device refresh, an experimental Keychron Link receiver adapter, an experimental Attack Shark R1 HID adapter, a DS4Windows IPC adapter, an Inno Setup installer definition, and a Windows x64 build workflow.
+
+## Target devices
+
+| Device | Connection | Current integration |
 | --- | --- | --- |
-| Keychron K3 Max | 2.4 GHz USB receiver | Device-specific HID investigation |
-| Attack Shark R1 | 2.4 GHz USB receiver | Device-specific HID investigation |
-| Sony DualShock 4 (DS4) | Bluetooth USB adapter | DS4Windows integration / Windows device APIs |
+| Keychron K3 Max | 2.4 GHz USB receiver | Experimental receiver/keyboard connection detection; battery still unavailable |
+| Attack Shark R1 | 2.4 GHz USB receiver | Experimental HID reader; physical validation pending |
+| Sony DualShock 4 | Bluetooth USB adapter / DS4Windows | DS4Windows IPC query adapter; requires DS4Windows to be running |
 
-Support for other devices is not currently planned or guaranteed. Additional models may be considered after the initial devices are implemented and tested.
+## Implemented
 
-## Planned Features
+- One custom-drawn notification-area icon; left-click opens the compact device popup.
+- Context menu with Open and Exit.
+- Single-instance process guard.
+- Popup closes when it loses focus.
+- Light/dark mode follows the Windows app theme.
+- Accent color is read from the current Windows user theme and refreshed after Windows preference changes.
+- Windows high-contrast colors take priority for accessibility.
+- Optional per-user startup registration; no administrator permission is required.
+- Device status refresh runs only when the tray menu or popup is opened; there is no periodic timer. HID and DS4Windows queries run off the UI thread and overlapping refreshes are prevented.
+- **Keychron K3 Max (experimental):** probes Keychron Link receivers (VID/PID `3434:D030` / `3434:D031`) using the FR command handshake (`B1` protocol version, `B2` paired-device slots). It does not claim a battery percentage because the exact battery response over this receiver path is not yet verified.
+- **Attack Shark R1 (experimental):** passively listens to the receiver's dedicated battery HID collection (`MI_02 / COL03`) for VID/PID `1D57:FA60`; it does not send commands to the mouse. It accepts only valid battery frames, reads the receiver's `0..100` charge byte without rescaling, and requires two matching consecutive readings to reject the one-off false 100% packet on reconnect. The last confirmed level is retained while the mouse sleeps; no percentage is invented when the receiver is absent.
+- **DualShock 4:** queries battery, charging, and connection type from running `DS4Windows.exe` through its read-only IPC on each tray activation (no 10-second stale cache). The adapter scans DS4Windows slots 1–4 for an active USB/Bluetooth controller; query output is drained asynchronously with a bounded timeout.
+- Self-contained x64 publish and Inno Setup installer pipeline.
+- PowerShell build script checks the SDK, builds, runs tests, publishes, and packages the installer.
+- Unit tests cover Keychron receiver-state parsing and R1 report signature validation, exact percentage decoding, and charging-flag decoding.
 
-- A separate system-tray icon for each supported device.
-- Battery percentage, when the device exposes reliable battery information.
-- Connection state: connected or disconnected.
-- Charging state: charging, not charging, or unknown when the hardware does not report it.
-- Automatic device detection and periodic status updates.
-- Clear indication when a device is unavailable or its battery level cannot be read.
-- Optional launch at Windows sign-in.
-- A small settings window with minimal background resource usage.
+## Hardware notes
 
-> **Hardware limitation:** A USB receiver does not automatically expose battery information to Windows. Battery reporting and charging detection depend on each device's firmware and communication protocol. The application will not invent or estimate battery percentages; unavailable values will be shown as unknown.
+### Attack Shark R1
+
+The adapter is based on a public Linux driver that documents the wireless receiver as USB `1D57:FA60`, HID interface 2, battery input report ID `0x03`, and charging/status fields. Its report format is ported to a Windows HID reader; it has **not yet been verified on the user's physical mouse and receiver**.
+
+The adapter only displays a percentage after the report ID, R1 device identifier, ready status, and 0–100 charge range pass validation. The receiver's last byte is treated as an exact percentage (e.g. `6` means `6%`, not `60%`). A timeout does not create a new percentage. It keeps the last confirmed reading while the receiver remains present.
+
+Reference: [jlucaso1/attack-shark-r1](https://github.com/jlucaso1/attack-shark-r1).
+
+### Sony DualShock 4
+
+The app looks for a running `DS4Windows.exe` process and sends read-only queries such as `Query.1.Battery`, `Query.1.Charging`, and `Query.1.ConnType` through DS4Windows' documented IPC interface. It does not change controller settings or install drivers.
+
+Reference: [DS4Windows command-line query documentation](https://ds4window.org/command-line/).
+
+### Keychron K3 Max
+
+The keyboard Link receiver uses the FR bridge command set: `B1` reads protocol capabilities and `B2` returns paired-device slots. The `B2` slot report confirms connection but does not contain the keyboard battery percentage. (A separate `0x54` carrier report is used by some mouse receiver protocols.) The app therefore reports connection state only and leaves battery/charging unavailable rather than substituting a guessed value. Battery telemetry for stock K3 Max firmware over this exact receiver path remains under investigation.
+
+References: [Keychron Vial bridge/dongle notes](https://github.com/Tymon3310/keychron-vial/blob/main/docs/launcher/bridge-dongle-protocol.md), [wireless communication](https://github.com/Tymon3310/keychron-vial/blob/main/docs/launcher/wireless-communication.md), and [Keychron Link battery research](https://github.com/dolfbarr/keychron-battery).
+
+## Planned work
+
+1. Validate the R1 listener against the user's actual receiver and mouse, including sleep, wake, charging, and disconnect behavior.
+2. Confirm the DS4Windows query output on the installed DS4Windows version and test disconnect/reconnect and charging states.
+3. Continue investigating a reliable K3 Max battery source while preserving the user's 2.4 GHz connection. The currently verified FR receiver state command only confirms paired-device connection; it does not expose a battery percentage, so the app intentionally does not guess one.
+4. Add settings for polling interval, DS4 controller slot, startup, and diagnostics.
+5. Add device reconnect handling, bounded polling, structured logs, and failure recovery.
+6. Improve tray icon, popup animation, accessibility, and high-contrast support.
+7. Add signed releases and an update mechanism after the installer is stable.
 
 ## Technology
 
-The planned implementation is based on:
+- C# / WPF on **.NET 10 LTS**
+- [HidSharp 2.6.4](https://www.nuget.org/packages/HidSharp) for Windows HID access
+- Windows notification-area integration
+- Windows Registry for per-user theme, accent, and startup preferences
+- Inno Setup for the Windows installer
+- GitHub Actions for Windows x64 build and installer packaging
 
-- **C# / .NET** — application logic.
-- **WPF / XAML** — desktop interface and settings.
-- **Windows APIs (Win32)** — device discovery and system integration.
-- **HID** — communication with compatible USB receivers and peripherals.
-- **Windows Bluetooth APIs** — Bluetooth device information where available.
-- **DS4Windows** — integration point for the DualShock 4 workflow, subject to the available interface and reported data.
+.NET 10 is the current LTS line. See the [official .NET support policy](https://learn.microsoft.com/dotnet/core/releases-and-support).
 
-The exact framework target and device-specific libraries will be finalized during implementation and hardware testing.
+## Build
+
+Requirements: Windows 11 x64, .NET 10 SDK, and Inno Setup 6.
+
+Run PowerShell from the repository root:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\build-installer.ps1
+```
+
+The script restores dependencies, builds the app, runs unit tests, publishes a self-contained x64 executable, and compiles the installer. Output: `artifacts/installer/German-Device-Tray-Hub-Setup.exe`.
+
+GitHub Actions runs the same build/test/publish/installer pipeline and uploads the setup executable as a workflow artifact.
 
 ## Platform
 
-- Windows 10 / Windows 11
-- x64
+- Primary target: Windows 11 x64.
+- Windows 10 compatibility is not promised by the current .NET 10 target; it requires a separate compatibility decision and test matrix.
 
-## Development Status
+## Privacy and permissions
 
-**Early planning / initial repository stage.**
+- No analytics, advertising, or telemetry is sent by the app.
+- No administrator rights or third-party device drivers are required.
+- The R1 reader only opens the matching HID interface and reads reports.
+- DS4Windows integration uses read-only local IPC queries.
+- Startup registration is per-user in HKCU; uninstall removes the installer-created startup entry.
 
-The repository currently documents the project scope. Device communication, battery reporting, tray icons, and the user interface still need to be implemented and verified on the actual hardware.
+## Reliability policy
 
-## Scope and Compatibility
-
-This is a device-specific utility, not a universal peripheral manager. A device will only be marked as supported after its detection and reported status have been tested.
-
-If a device does not provide a reliable battery or charging value, the application will show that the information is unavailable instead of displaying a guessed value.
+- Unknown means unknown — never estimate a battery percentage.
+- A device is not considered fully supported until detection and telemetry have been tested on the physical model and receiver.
+- Missing charging information is displayed as unavailable, not inferred from battery movement.
+- Device communication must use bounded timeouts and must not block the UI thread.
 
 ## License
 
-License: not decided yet.
+Project license: not decided yet. Third-party dependencies and protocol references are documented in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
