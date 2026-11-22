@@ -7,7 +7,7 @@ internal static class Ds4WindowsAdapter
 {
     private const string ProcessName = "DS4Windows";
     private const int ControllerSlot = 1;
-    private const int QueryTimeoutMilliseconds = 900;
+    private const int QueryTimeoutMilliseconds = 1200;
     private static readonly object CacheLock = new();
     private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(10);
     private static DateTime _lastQueryUtc = DateTime.MinValue;
