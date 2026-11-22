@@ -24,7 +24,7 @@ CloseApplications=yes
 RestartApplications=no
 
 [Tasks]
-Name: "startup"; Description: "Запускать вместе с Windows"; Flags: unchecked
+Name: "startup"; Description: "Запускать вместе с Windows"; Flags: checkedonce
 
 [Files]
 Source: "..\artifacts\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
