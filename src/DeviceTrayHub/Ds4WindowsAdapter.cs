@@ -118,9 +118,6 @@ internal static class Ds4WindowsAdapter
             using var process = Process.Start(startInfo);
             if (process is null) return string.Empty;
 
-            using var process = Process.Start(startInfo);
-            if (process is null) return string.Empty;
-
             // Drain stdout concurrently; waiting first can block a child that fills the pipe.
             var outputTask = process.StandardOutput.ReadToEndAsync();
             if (!process.WaitForExit(QueryTimeoutMilliseconds))
