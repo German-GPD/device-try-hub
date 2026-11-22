@@ -8,7 +8,7 @@ AppId={{A8F2D2B5-79B4-4D1D-8B0A-DA3B11E1C4A9}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={localappdata}\Programs\German'$ Device Tray Hub
+DefaultDirName={localappdata}\Programs\German-GPD
 DefaultGroupName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 OutputDir=..\artifacts\installer
@@ -33,7 +33,7 @@ Source: "..\artifacts\publish\*"; DestDir: "{app}"; Flags: ignoreversion recurse
 Name: "{group}\German'$ Device Tray Hub"; Filename: "{app}\{#MyAppExeName}"
 
 [Registry]
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "GermanDeviceTrayHub"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue; Tasks: startup
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "GermanDeviceTrayHub"; ValueData: """"{app}\{#MyAppExeName}""""; Flags: uninsdeletevalue; Tasks: startup
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Запустить German'$ Device Tray Hub"; Flags: nowait postinstall skipifsilent
