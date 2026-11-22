@@ -2,6 +2,9 @@ using System.Windows;
 using System.Windows.Media;
 using Microsoft.Win32;
 using MediaColor = System.Windows.Media.Color;
+using WpfApplication = System.Windows.Application;
+using WpfSystemColors = System.Windows.SystemColors;
+using MediaColorConverter = System.Windows.Media.ColorConverter;
 
 namespace German.DeviceTrayHub;
 
@@ -9,11 +12,11 @@ internal static class ThemeService
 {
     public static void Apply()
     {
-        var resources = Application.Current.Resources;
+        var resources = WpfApplication.Current.Resources;
 
         if (SystemParameters.HighContrast)
         {
-            resources["WindowBrush"] = FrozenBrush(SystemColors.WindowColor);
+            resources["WindowBrush"] = FrozenBrush(WpfSystemColors.WindowColor);
             resources["SurfaceBrush"] = FrozenBrush(SystemColors.WindowColor);
             resources["TextBrush"] = FrozenBrush(SystemColors.WindowTextColor);
             resources["MutedBrush"] = FrozenBrush(SystemColors.GrayTextColor);
@@ -43,7 +46,7 @@ internal static class ThemeService
     }
 
     private static SolidColorBrush Brush(string value) =>
-        FrozenBrush((MediaColor)ColorConverter.ConvertFromString(value));
+        FrozenBrush((MediaColor)MediaColorConverter.ConvertFromString(value));
 
     private static SolidColorBrush FrozenBrush(MediaColor color)
     {
