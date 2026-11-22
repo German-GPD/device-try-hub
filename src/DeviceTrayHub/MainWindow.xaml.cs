@@ -68,12 +68,29 @@ public partial class MainWindow : Window
                     Text = device.Battery,
                     FontSize = 12,
                     FontWeight = FontWeights.SemiBold,
-                    Foreground = (Brush)Application.Current.Resources["AccentBrush"]
+                    Foreground = (Brush)Application.Current.Resources[
+                        device.Battery == "Недоступно" ? "MutedBrush" : "AccentBrush"]
                 };
                 DockPanel.SetDock(battery, Dock.Right);
                 header.Children.Add(battery);
                 header.Children.Add(name);
                 panel.Children.Add(header);
+                if (int.TryParse(device.Battery.TrimEnd('%'), out var batteryPercent) &&
+                    batteryPercent is >= 0 and <= 100)
+                {
+                    panel.Children.Add(new ProgressBar
+                    {
+                        Minimum = 0,
+                        Maximum = 100,
+                        Value = batteryPercent,
+                        Height = 4,
+                        Margin = new Thickness(0, 8, 0, 1),
+                        Foreground = (Brush)Application.Current.Resources["AccentBrush"],
+                        Background = (Brush)Application.Current.Resources["BorderBrush"],
+                        BorderThickness = new Thickness(0)
+                    });
+                }
+
                 panel.Children.Add(new TextBlock
                 {
                     Text = device.Connection + "  ·  " + device.Charging,
