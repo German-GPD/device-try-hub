@@ -5,6 +5,8 @@ on:
     branches: [main, "feature/**"]
     paths:
       - "src/**"
+      - "tests/**"
+      - "scripts/**"
       - "installer/**"
       - ".github/workflows/build.yml"
   pull_request:
