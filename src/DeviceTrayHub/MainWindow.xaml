@@ -41,7 +41,7 @@
             <Grid Grid.Row="3" Margin="0,14,0,0">
                 <TextBlock Text="Обновление каждые 5 секунд" FontSize="11"
                            Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
-                <Button Content="Настройки запуска" HorizontalAlignment="Right"
+                <Button x:Name="StartupButton" Content="Автозапуск: —" HorizontalAlignment="Right"
                         Click="StartupButton_Click" Padding="10,6"/>
             </Grid>
         </Grid>
