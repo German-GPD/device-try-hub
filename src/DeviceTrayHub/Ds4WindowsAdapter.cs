@@ -6,10 +6,12 @@ namespace German.DeviceTrayHub;
 internal static class Ds4WindowsAdapter
 {
     private const string ProcessName = "DS4Windows";
-    private const int ControllerSlot = 1;
-    private const int QueryTimeoutMilliseconds = 3000;
+    private const int FirstControllerSlot = 1;
+    private const int LastControllerSlot = 4;
+    private const int QueryTimeoutMilliseconds = 1500;
 
-    // Query on each tray activation so the displayed value is a fresh IPC response.
+    // DS4Windows can assign a controller to any of its four slots. Find the
+    // first slot that currently reports a real connection instead of assuming slot 1.
     public static DeviceStatus ReadStatus() => ReadStatusCore();
 
     private static DeviceStatus ReadStatusCore()
@@ -25,62 +27,53 @@ internal static class Ds4WindowsAdapter
                 "Запусти DS4Windows — приложение читает состояние через его штатный IPC.");
         }
 
-        var batteryText = Query(executable, "Battery");
-        if (string.IsNullOrWhiteSpace(batteryText))
+        for (var slot = FirstControllerSlot; slot <= LastControllerSlot; slot++)
         {
+            var connectionText = Query(executable, slot, "ConnType");
+            var connection = connectionText.Trim().ToUpperInvariant() switch
+            {
+                "BT" => "Подключён · Bluetooth",
+                "USB" => "Подключён · USB",
+                _ => null
+            };
+
+            if (connection is null) continue;
+
+            var batteryText = Query(executable, slot, "Battery");
+            var normalizedBattery = batteryText.Trim().TrimEnd('%').Trim();
+            if (!int.TryParse(normalizedBattery, NumberStyles.Integer, CultureInfo.InvariantCulture, out var battery) ||
+                battery is < 0 or > 100)
+            {
+                return new DeviceStatus(
+                    "Sony DualShock 4",
+                    connection,
+                    "Недоступно",
+                    "Неизвестно",
+                    $"DS4Windows подтвердил контроллер в слоте {slot}, но не вернул корректный заряд.");
+            }
+
+            var chargingText = Query(executable, slot, "Charging");
+            var charging = chargingText.Trim().ToLowerInvariant() switch
+            {
+                "true" or "1" => "Заряжается",
+                "false" or "0" => "Не заряжается",
+                _ => "Неизвестно"
+            };
+
             return new DeviceStatus(
                 "Sony DualShock 4",
-                "Контроллер не найден в слоте 1",
-                "Недоступно",
-                "Неизвестно",
-                "DS4Windows работает, но не вернул батарею для первого слота.");
+                connection,
+                $"{battery}%",
+                charging,
+                $"Данные получены через штатный IPC DS4Windows (слот {slot}).");
         }
-
-        var normalizedBattery = batteryText.Trim().TrimEnd('%').Trim();
-        if (!int.TryParse(normalizedBattery, NumberStyles.Integer, CultureInfo.InvariantCulture, out var battery) ||
-            battery is < 0 or > 100)
-        {
-            return new DeviceStatus(
-                "Sony DualShock 4",
-                "Получен неизвестный ответ",
-                "Недоступно",
-                "Неизвестно",
-                $"DS4Windows вернул непонятное значение батареи: {batteryText}");
-        }
-
-        var chargingText = Query(executable, "Charging");
-        var connectionText = Query(executable, "ConnType");
-
-        var connection = connectionText.Trim().ToUpperInvariant() switch
-        {
-            "BT" => "Подключён · Bluetooth",
-            "USB" => "Подключён · USB",
-            _ => null
-        };
-
-        if (connection is null)
-        {
-            return new DeviceStatus(
-                "Sony DualShock 4",
-                "Контроллер не подтверждён",
-                "Недоступно",
-                "Неизвестно",
-                "DS4Windows не подтвердил активное USB- или Bluetooth-подключение.");
-        }
-
-        var charging = chargingText.Trim().ToLowerInvariant() switch
-        {
-            "true" or "1" => "Заряжается",
-            "false" or "0" => "Не заряжается",
-            _ => "Неизвестно"
-        };
 
         return new DeviceStatus(
             "Sony DualShock 4",
-            connection,
-            $"{battery}%",
-            charging,
-            "Данные получены через штатный IPC DS4Windows (слот 1).");
+            "Контроллер не подключён в DS4Windows",
+            "Недоступно",
+            "Неизвестно",
+            "Проверены слоты 1–4; активного USB- или Bluetooth-контроллера не найдено.");
     }
 
     private static string? FindRunningExecutable()
@@ -104,7 +97,7 @@ internal static class Ds4WindowsAdapter
         return null;
     }
 
-    private static string Query(string executable, string property)
+    private static string Query(string executable, int slot, string property)
     {
         try
         {
@@ -116,16 +109,16 @@ internal static class Ds4WindowsAdapter
                 CreateNoWindow = true
             };
             startInfo.ArgumentList.Add("-command");
-            startInfo.ArgumentList.Add($"Query.{ControllerSlot}.{property}");
+            startInfo.ArgumentList.Add($"Query.{slot}.{property}");
 
             using var process = Process.Start(startInfo);
             if (process is null) return string.Empty;
 
-            // Drain stdout concurrently; waiting first can block a child that fills the pipe.
+            // Drain stdout concurrently so a child cannot block on a full pipe.
             var outputTask = process.StandardOutput.ReadToEndAsync();
             if (!process.WaitForExit(QueryTimeoutMilliseconds))
             {
-                process.Kill(entireProcessTree: true);
+                try { process.Kill(entireProcessTree: true); } catch { }
                 return string.Empty;
             }
 
