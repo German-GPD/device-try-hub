@@ -2,12 +2,12 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
-        <SolidColorBrush x:Key="WindowBrush" Color="#FFF4F5F7"/>
-        <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="WindowBrush" Color="#DDF7F8FA"/>
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#BFFFFFFF"/>
         <SolidColorBrush x:Key="TextBrush" Color="#FF202329"/>
         <SolidColorBrush x:Key="MutedBrush" Color="#FF737983"/>
-        <SolidColorBrush x:Key="BorderBrush" Color="#FFE3E6EA"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="#FF2E8B72"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#66FFFFFF"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#FF3A8D72"/>
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
             <Setter Property="FontFamily" Value="Segoe UI Variable Text"/>
