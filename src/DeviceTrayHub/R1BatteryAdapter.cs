@@ -48,44 +48,27 @@ internal static class R1BatteryAdapter
             stream.ReadTimeout = ReadTimeoutMilliseconds;
             var report = stream.Read();
 
-            if (report.Length < 5 ||
-                report[0] != BatteryReportId ||
-                report[1] != R1DeviceId ||
-                report[2] != BatteryReady)
+            if (!R1BatteryReportParser.TryParse(report, out var reading))
             {
                 return new DeviceStatus(
                     "Attack Shark R1",
                     "Приёмник найден",
                     "Недоступно",
                     "Неизвестно",
-                    "Получен отчёт, но он не прошёл проверку сигнатуры R1.");
+                    "Получен отчёт, но он не прошёл проверку формата и диапазона заряда.");
             }
 
-            var flags = report[3];
-            var rawCharge = report[4];
-
-            if (rawCharge > 100)
+            var charging = reading.IsCharging switch
             {
-                return new DeviceStatus(
-                    "Attack Shark R1",
-                    "Приёмник найден",
-                    "Недоступно",
-                    "Неизвестно",
-                    $"Неизвестное значение заряда: {rawCharge}.");
-            }
-
-            var percentage = rawCharge <= 10 ? rawCharge * 10 : rawCharge;
-            var charging = flags switch
-            {
-                0x01 => "Не заряжается",
-                0x02 or 0x03 or 0x80 => "Заряжается",
-                _ => "Неизвестно"
+                true => "Заряжается",
+                false => "Не заряжается",
+                null => "Неизвестно"
             };
 
             _lastKnownStatus = new DeviceStatus(
                 "Attack Shark R1",
                 "Мышь отвечает",
-                $"{percentage}%",
+                $"{reading.Percentage}%",
                 charging,
                 "Данные получены из HID-отчёта; протокол требует проверки на этом экземпляре.");
             return _lastKnownStatus;
