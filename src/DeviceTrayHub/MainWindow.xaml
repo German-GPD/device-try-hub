@@ -18,7 +18,7 @@
                 <StackPanel>
                     <TextBlock Text="DEVICE TRAY HUB" FontSize="10" FontWeight="SemiBold"
                                Foreground="{DynamicResource AccentBrush}"/>
-                    <TextBlock Text="Ваши устройства" FontSize="23" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                    <TextBlock Text="Устройства" FontSize="23" FontWeight="SemiBold" Margin="0,4,0,0"/>
                     <TextBlock Text="Состояние подключённых устройств" FontSize="12"
                                Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,0"/>
                 </StackPanel>
@@ -33,7 +33,7 @@
                 <DockPanel LastChildFill="False">
                     <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentBrush}" Margin="0,0,9,0"/>
                     <TextBlock Text="Обновление при открытии" FontSize="12" FontWeight="Medium"/>
-                    <TextBlock x:Name="RefreshStatus" Text="Сейчас" FontSize="10"
+                    <TextBlock x:Name="RefreshStatus" Text="Ожидание" FontSize="10"
                                Foreground="{DynamicResource MutedBrush}" DockPanel.Dock="Right"
                                VerticalAlignment="Center"/>
                 </DockPanel>
@@ -43,7 +43,7 @@
                 <StackPanel x:Name="DeviceList"/>
             </ScrollViewer>
             <Grid Grid.Row="3" Margin="0,14,0,0">
-                <TextBlock Text="Нажми значок в трее для обновления" FontSize="10"
+                <TextBlock Text="Открытие меню в трее обновляет данные" FontSize="10"
                            Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
                 <Button x:Name="StartupButton" Content="Автозапуск: —" HorizontalAlignment="Right"
                         Click="StartupButton_Click" Padding="10,6"/>
