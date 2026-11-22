@@ -34,13 +34,12 @@ internal static class ThemeService
         catch { }
 
         var accent = ReadAccent();
-        resources["WindowBrush"] = Brush(isLight ? "#DDF7F8FA" : "#DD202328");
-        resources["SurfaceBrush"] = Brush(isLight ? "#BFFFFFFF" : "#B82B2F35");
+        resources["WindowBrush"] = Brush(isLight ? "#B8F7F8FA" : "#B8202328");
+        resources["SurfaceBrush"] = Brush(isLight ? "#70FFFFFF" : "#702B3037");
         resources["TextBrush"] = Brush(isLight ? "#FF202329" : "#FFF1F2F4");
         resources["MutedBrush"] = Brush(isLight ? "#FF737983" : "#FFA5ABB4");
-        resources["BorderBrush"] = Brush(isLight ? "#66FFFFFF" : "#553F454D");
+        resources["BorderBrush"] = Brush(isLight ? "#55FFFFFF" : "#554F555E");
         resources["AccentBrush"] = FrozenBrush(accent);
-        WindowBackdrop.Apply(WpfApplication.Current.MainWindow as Window);
     }
 
     private static SolidColorBrush Brush(string value) =>
@@ -68,6 +67,6 @@ internal static class ThemeService
         }
         catch { }
 
-        return MediaColor.FromRgb(58, 141, 114);
+        return MediaColor.FromRgb(57, 126, 104);
     }
 }
