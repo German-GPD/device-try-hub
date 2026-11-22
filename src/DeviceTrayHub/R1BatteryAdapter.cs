@@ -8,7 +8,6 @@ internal static class R1BatteryAdapter
     private const int VendorId = 0x1D57;
     private const int WirelessProductId = 0xFA60;
     private const string InterfaceMarker = "&mi_02";
-    private const string BatteryCollectionMarker = "&col03";
     private const int ReadTimeoutMilliseconds = 3000;
 
     private static readonly object StateLock = new();
@@ -30,7 +29,7 @@ internal static class R1BatteryAdapter
                 "Приёмник найден · жду пакет батареи",
                 "Недоступно",
                 "Неизвестно",
-                "Слушаю пассивный HID-канал батареи (MI_02 / COL03). Значение появится после отчёта мыши.");
+                "Слушаю пассивный HID-канал батареи (MI_02 / Usage Page 0x0A). Значение появится после отчёта мыши.");
         }
     }
 
@@ -59,8 +58,8 @@ internal static class R1BatteryAdapter
                     .GetHidDevices(VendorId, WirelessProductId)
                     .FirstOrDefault(candidate =>
                         candidate.GetMaxInputReportLength() >= 5 &&
-                        candidate.DevicePath.Contains(InterfaceMarker, StringComparison.OrdinalIgnoreCase) &&
-                        candidate.DevicePath.Contains(BatteryCollectionMarker, StringComparison.OrdinalIgnoreCase));
+                        candidate.UsagePage == 0x000A &&
+                        candidate.DevicePath.Contains(InterfaceMarker, StringComparison.OrdinalIgnoreCase));
 
                 if (device is null)
                 {
@@ -133,7 +132,7 @@ internal static class R1BatteryAdapter
                 "Подключён · 2.4 GHz",
                 $"{reading.Percentage}%",
                 charging,
-                "Заряд из повторно подтверждённых входящих HID-пакетов батареи (MI_02 / COL03).");
+                "Заряд из повторно подтверждённых входящих HID-пакетов батареи (MI_02 / Usage Page 0x0A).");
 
             FirstReading.Set();
         }
