@@ -18,11 +18,6 @@ internal static class DeviceMonitor
             "Неизвестно",
             "Протокол батареи через 2,4 ГГц-приёмник пока не подтверждён."),
         R1BatteryAdapter.ReadStatus(),
-        new(
-            "Sony DualShock 4",
-            "Ожидает интеграции DS4Windows",
-            "Недоступно",
-            "Неизвестно",
-            "Нужно включить и проверить внешний мониторинг OSC или IPC.")
+        Ds4WindowsAdapter.ReadStatus()
     ];
 }
