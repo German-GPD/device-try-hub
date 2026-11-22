@@ -8,7 +8,7 @@ internal static class KeychronBridgeAdapter
     private const int VendorId = 0x3434;
     private static readonly int[] ReceiverProductIds = [0xD030, 0xD031];
     private const int ReadTimeoutMilliseconds = 300;
-    private const int MaxUnrelatedReports = 4;
+    private const int MaxUnrelatedReports = 3;
 
     public static DeviceStatus ReadStatus()
     {
@@ -17,9 +17,8 @@ internal static class KeychronBridgeAdapter
             var device = ReceiverProductIds
                 .SelectMany(productId => DeviceList.Local.GetHidDevices(VendorId, productId))
                 .FirstOrDefault(candidate =>
-                    candidate.GetMaxInputReportLength() >= 3 &&
-                    candidate.GetMaxOutputReportLength() >= 33 &&
-                    candidate.GetMaxFeatureReportLength() >= 21);
+                    candidate.GetMaxInputReportLength() >= 18 &&
+                    candidate.GetMaxOutputReportLength() >= 33);
 
             if (device is null)
             {
@@ -35,44 +34,26 @@ internal static class KeychronBridgeAdapter
             stream.ReadTimeout = ReadTimeoutMilliseconds;
             stream.WriteTimeout = ReadTimeoutMilliseconds;
 
-            // Keychron Link receiver setup: feature report 0x51 / 0x01,
-            // followed by output report B2 01. The receiver answers with
-            // input report 0x54 (channel and link/carrier state).
-            var feature = new byte[21];
-            feature[0] = 0x51;
-            feature[1] = 0x01;
-            stream.SetFeature(feature);
+            // Keyboard Link receivers use the FR bridge command set:
+            // B1 reads protocol capabilities; B2 reads the paired-device slots.
+            // This is distinct from the 0x54 carrier-status protocol used by
+            // some Keychron mouse receivers.
+            if (SendReadCommand(stream, 0xB1) is null)
+                return ReceiverNoReply("Приёмник не ответил на FR_GET_PROTOCOL_VERSION (B1).");
 
-            var request = new byte[33];
-            request[0] = 0x00; // HID report ID 0
-            request[1] = 0xB2;
-            request[2] = 0x01;
-            stream.Write(request);
-
-            for (var attempt = 0; attempt <= MaxUnrelatedReports; attempt++)
+            var response = SendReadCommand(stream, 0xB2);
+            if (response is null ||
+                !KeychronBridgeStateParser.TryParse(response, out var connected))
             {
-                byte[] report;
-                try
-                {
-                    report = stream.Read();
-                }
-                catch (TimeoutException)
-                {
-                    return ReceiverNoReply("Keychron Link не ответил отчётом 0x54.");
-                }
-
-                if (!KeychronBridgeStateParser.TryParse(report, out var connected))
-                    continue;
-
-                return new DeviceStatus(
-                    "Keychron K3 Max",
-                    connected ? "Связь подтверждена · 2.4 GHz" : "Клавиатура не отвечает",
-                    "Недоступно",
-                    "Неизвестно",
-                    "Получен ответ Link receiver 0x54. Процент батареи из этого отчёта не извлекается.");
+                return ReceiverNoReply("Ответ FR_GET_STATE (B2) не прошёл проверку формата.");
             }
 
-            return ReceiverNoReply("Получены только посторонние HID-отчёты, отчёт 0x54 не найден.");
+            return new DeviceStatus(
+                "Keychron K3 Max",
+                connected ? "Клавиатура отвечает · 2.4 GHz" : "Клавиатура не подключена",
+                "Недоступно",
+                "Неизвестно",
+                "Получен FR_GET_STATE от Link receiver. Этот отчёт подтверждает слот подключения, но не содержит батарею.");
         }
         catch (TimeoutException)
         {
@@ -96,6 +77,30 @@ internal static class KeychronBridgeAdapter
                 "Неизвестно",
                 $"Ошибка Keychron HID: {ex.Message}");
         }
+    }
+
+    private static byte[]? SendReadCommand(HidStream stream, byte command)
+    {
+        var request = new byte[33];
+        request[0] = 0x00; // HID report ID
+        request[1] = command;
+        stream.Write(request);
+
+        for (var attempt = 0; attempt <= MaxUnrelatedReports; attempt++)
+        {
+            try
+            {
+                var report = stream.Read();
+                if (report.Length >= 2 && report[0] == 0x00 && report[1] == command)
+                    return report;
+            }
+            catch (TimeoutException)
+            {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     private static DeviceStatus ReceiverNoReply(string detail) =>
