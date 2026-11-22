@@ -9,6 +9,7 @@ namespace German.DeviceTrayHub;
 public partial class App : Application
 {
     private Mutex? _mutex;
+    private EventWaitHandle? _showSignal;
     private NotifyIcon? _trayIcon;
     private Icon? _trayIconImage;
     private MainWindow? _window;
@@ -17,15 +18,24 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        _showSignal = new EventWaitHandle(
+            false,
+            EventResetMode.AutoReset,
+            @"Local\GermanDeviceTrayHub.Show");
+
         _mutex = new Mutex(true, @"Local\GermanDeviceTrayHub", out var createdNew);
         if (!createdNew)
         {
+            try { _showSignal.Set(); } catch (ObjectDisposedException) { }
+            _showSignal.Dispose();
+            _showSignal = null;
             _mutex.Dispose();
             _mutex = null;
             Shutdown();
             return;
         }
 
+        StartActivationListener();
         ThemeService.Apply();
         Microsoft.Win32.SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
 
@@ -50,6 +60,35 @@ public partial class App : Application
         };
     }
 
+    private void StartActivationListener()
+    {
+        if (_showSignal is null) return;
+
+        var signal = _showSignal;
+        var listener = new Thread(() =>
+        {
+            while (true)
+            {
+                try
+                {
+                    signal.WaitOne();
+                }
+                catch (ObjectDisposedException)
+                {
+                    return;
+                }
+
+                if (Dispatcher.HasShutdownStarted) return;
+                Dispatcher.BeginInvoke(new Action(ShowWindow));
+            }
+        })
+        {
+            IsBackground = true,
+            Name = "Device Tray Hub activation listener"
+        };
+        listener.Start();
+    }
+
     private void OnUserPreferenceChanged(object? sender, UserPreferenceChangedEventArgs e)
     {
         if (!Dispatcher.HasShutdownStarted)
@@ -71,6 +110,7 @@ public partial class App : Application
             _trayIcon.Dispose();
         }
         _trayIconImage?.Dispose();
+        _showSignal?.Dispose();
         Microsoft.Win32.SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         _mutex?.ReleaseMutex();
         _mutex?.Dispose();
