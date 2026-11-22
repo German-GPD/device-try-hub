@@ -1,16 +1,27 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Microsoft.Win32;
 
 namespace German.DeviceTrayHub;
 
 public partial class MainWindow : Window
 {
+    private readonly DispatcherTimer _pollTimer;
+    private bool _refreshInProgress;
+
     public MainWindow()
     {
         InitializeComponent();
-        Loaded += (_, _) => { PositionNearTray(); RefreshDevices(); };
+        _pollTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+        _pollTimer.Tick += async (_, _) => await RefreshDevicesAsync();
+        Loaded += async (_, _) =>
+        {
+            PositionNearTray();
+            await RefreshDevicesAsync();
+            _pollTimer.Start();
+        };
         Deactivated += (_, _) => Hide();
     }
 
@@ -21,57 +32,69 @@ public partial class MainWindow : Window
         Top = work.Bottom - Height - 12;
     }
 
-    private void RefreshDevices()
+    private async Task RefreshDevicesAsync()
     {
-        DeviceList.Children.Clear();
-        foreach (var device in DeviceMonitor.ReadCurrent())
-        {
-            var card = new Border
-            {
-                Background = (Brush)Application.Current.Resources["SurfaceBrush"],
-                BorderBrush = (Brush)Application.Current.Resources["BorderBrush"],
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(9),
-                Padding = new Thickness(12),
-                Margin = new Thickness(0, 0, 0, 9)
-            };
+        if (_refreshInProgress) return;
+        _refreshInProgress = true;
 
-            var panel = new StackPanel();
-            var header = new DockPanel();
-            var name = new TextBlock
+        try
+        {
+            var devices = await Task.Run(DeviceMonitor.ReadCurrent);
+            DeviceList.Children.Clear();
+
+            foreach (var device in devices)
             {
-                Text = device.Name,
-                FontSize = 14,
-                FontWeight = FontWeights.SemiBold
-            };
-            var battery = new TextBlock
-            {
-                Text = device.Battery,
-                FontSize = 12,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = (Brush)Application.Current.Resources["AccentBrush"]
-            };
-            DockPanel.SetDock(battery, Dock.Right);
-            header.Children.Add(battery);
-            header.Children.Add(name);
-            panel.Children.Add(header);
-            panel.Children.Add(new TextBlock
-            {
-                Text = device.Connection + "  ·  " + device.Charging,
-                FontSize = 11,
-                Margin = new Thickness(0, 6, 0, 0),
-                Foreground = (Brush)Application.Current.Resources["MutedBrush"]
-            });
-            panel.Children.Add(new TextBlock
-            {
-                Text = device.Detail,
-                FontSize = 10,
-                TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(0, 5, 0, 0),
-                Foreground = (Brush)Application.Current.Resources["MutedBrush"]
-            });
-            card.Child = panel;
-            DeviceList.Children.Add(card);
+                var card = new Border
+                {
+                    Background = (Brush)Application.Current.Resources["SurfaceBrush"],
+                    BorderBrush = (Brush)Application.Current.Resources["BorderBrush"],
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(9),
+                    Padding = new Thickness(12),
+                    Margin = new Thickness(0, 0, 0, 9)
+                };
+
+                var panel = new StackPanel();
+                var header = new DockPanel();
+                var name = new TextBlock
+                {
+                    Text = device.Name,
+                    FontSize = 14,
+                    FontWeight = FontWeights.SemiBold
+                };
+                var battery = new TextBlock
+                {
+                    Text = device.Battery,
+                    FontSize = 12,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = (Brush)Application.Current.Resources["AccentBrush"]
+                };
+                DockPanel.SetDock(battery, Dock.Right);
+                header.Children.Add(battery);
+                header.Children.Add(name);
+                panel.Children.Add(header);
+                panel.Children.Add(new TextBlock
+                {
+                    Text = device.Connection + "  ·  " + device.Charging,
+                    FontSize = 11,
+                    Margin = new Thickness(0, 6, 0, 0),
+                    Foreground = (Brush)Application.Current.Resources["MutedBrush"]
+                });
+                panel.Children.Add(new TextBlock
+                {
+                    Text = device.Detail,
+                    FontSize = 10,
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(0, 5, 0, 0),
+                    Foreground = (Brush)Application.Current.Resources["MutedBrush"]
+                });
+                card.Child = panel;
+                DeviceList.Children.Add(card);
+            }
+        }
+        finally
+        {
+            _refreshInProgress = false;
         }
     }
 
