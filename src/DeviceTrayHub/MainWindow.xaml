@@ -31,7 +31,7 @@
                     CornerRadius="9" Padding="11" Margin="0,0,0,12">
                 <DockPanel>
                     <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentBrush}" Margin="0,0,9,0"/>
-                    <TextBlock Text="Мониторинг активен" FontSize="12" FontWeight="Medium"/>
+                    <TextBlock Text="Приложение работает в фоне" FontSize="12" FontWeight="Medium"/>
                     <TextBlock Text="ДАННЫЕ НЕ ПОДТВЕРЖДЕНЫ" FontSize="9"
                                Foreground="{DynamicResource MutedBrush}" DockPanel.Dock="Right"
                                VerticalAlignment="Center"/>
