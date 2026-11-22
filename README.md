@@ -4,9 +4,9 @@ A lightweight Windows tray application for viewing the connection and battery st
 
 ## Current project status
 
-**Early implementation. The application shell and first two telemetry integrations are in progress; hardware validation is still required.**
+**Early implementation. The application shell and three device adapters are in progress; hardware validation is still required.**
 
-The current branch contains the WPF tray application, system theme/accent integration, per-user startup, asynchronous polling, an experimental Attack Shark R1 HID adapter, a DS4Windows IPC adapter, an Inno Setup installer definition, and a Windows x64 build workflow.
+The current branch contains the WPF tray application, system theme/accent integration, per-user startup, asynchronous polling, an experimental Keychron Link receiver adapter, an experimental Attack Shark R1 HID adapter, a DS4Windows IPC adapter, an Inno Setup installer definition, and a Windows x64 build workflow.
 
 ## Target devices
 
