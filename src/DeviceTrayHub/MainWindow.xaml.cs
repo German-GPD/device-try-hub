@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Threading;
 using Microsoft.Win32;
 using WpfApplication = System.Windows.Application;
 using MediaBrush = System.Windows.Media.Brush;
@@ -15,23 +14,21 @@ namespace German.DeviceTrayHub;
 
 public partial class MainWindow : Window
 {
-    private readonly DispatcherTimer _pollTimer;
     private bool _refreshInProgress;
     private bool _allowClose;
+    private bool _hasRefreshed;
 
     public MainWindow()
     {
         InitializeComponent();
-        _pollTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-        _pollTimer.Tick += async (_, _) => await RefreshDevicesAsync();
-        IsVisibleChanged += (_, _) =>
+        IsVisibleChanged += async (_, _) =>
         {
-            if (IsVisible) PositionNearTray();
+            if (!IsVisible) return;
+            PositionNearTray();
+            await RefreshDevicesAsync();
         };
         Loaded += (_, _) => UpdateStartupButtonText();
         UpdateStartupButtonText();
-        _ = RefreshDevicesAsync();
-        _pollTimer.Start();
         Deactivated += (_, _) => Hide();
     }
 
@@ -46,6 +43,7 @@ public partial class MainWindow : Window
     {
         if (_refreshInProgress) return;
         _refreshInProgress = true;
+        RefreshStatus.Text = "Обновляю…";
 
         try
         {
@@ -117,6 +115,23 @@ public partial class MainWindow : Window
                 });
                 card.Child = panel;
                 DeviceList.Children.Add(card);
+            }
+
+            _hasRefreshed = true;
+            RefreshStatus.Text = "Обновлено";
+        }
+        catch (Exception ex)
+        {
+            RefreshStatus.Text = "Ошибка обновления";
+            if (!_hasRefreshed)
+            {
+                DeviceList.Children.Clear();
+                DeviceList.Children.Add(new TextBlock
+                {
+                    Text = "Не удалось получить состояние устройств: " + ex.Message,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = (MediaBrush)WpfApplication.Current.Resources["MutedBrush"]
+                });
             }
         }
         finally
