@@ -1,0 +1,49 @@
+<Window x:Class="German.DeviceTrayHub.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="German'$ Device Tray Hub" Width="390" Height="510"
+        WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
+        AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="Manual" Topmost="True">
+    <Border Background="{DynamicResource WindowBrush}" BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1" CornerRadius="14" Padding="18">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="DEVICE TRAY HUB" FontSize="11" FontWeight="SemiBold"
+                               Foreground="{DynamicResource AccentBrush}" CharacterSpacing="1.4"/>
+                    <TextBlock Text="Ваши устройства" FontSize="23" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                    <TextBlock Text="Состояние подключённых устройств" FontSize="12"
+                               Foreground="{DynamicResource MutedBrush}" Margin="0,3,0,0"/>
+                </StackPanel>
+                <Button x:Name="CloseButton" Content="×" Width="30" Height="30" Padding="0"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Click="CloseButton_Click" FontSize="18" BorderThickness="0"/>
+            </Grid>
+            <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="9" Padding="11" Margin="0,0,0,12">
+                <DockPanel>
+                    <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentBrush}" Margin="0,0,9,0"/>
+                    <TextBlock Text="Мониторинг активен" FontSize="12" FontWeight="Medium"/>
+                    <TextBlock Text="ДАННЫЕ НЕ ПОДТВЕРЖДЕНЫ" FontSize="9"
+                               Foreground="{DynamicResource MutedBrush}" DockPanel.Dock="Right"
+                               VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
+            <StackPanel Grid.Row="2" x:Name="DeviceList"/>
+            <Grid Grid.Row="3" Margin="0,14,0,0">
+                <TextBlock Text="Работает в системном трее" FontSize="11"
+                           Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
+                <Button Content="Настройки запуска" HorizontalAlignment="Right"
+                        Click="StartupButton_Click" Padding="10,6"/>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
