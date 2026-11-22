@@ -12,6 +12,9 @@ internal static class R1BatteryReportParser
     {
         reading = default;
 
+        // The FA60 receiver sends a five-byte battery frame:
+        // 03 10 40 <state> <percentage>. The last byte is already 0..100;
+        // interpreting values 0..10 as tenths produces incorrect readings.
         if (report.Length < 5 ||
             report[0] != BatteryReportId ||
             report[1] != R1DeviceId ||
@@ -20,13 +23,10 @@ internal static class R1BatteryReportParser
             return false;
         }
 
-        var rawCharge = report[4];
-        if (rawCharge > 100) return false;
+        var percentage = report[4];
+        if (percentage > 100) return false;
 
-        // Firmware variants report either 0..10 (10% steps) or 0..100.
-        var percentage = rawCharge <= 10 ? rawCharge * 10 : rawCharge;
         var state = report[3];
-
         bool? isCharging = state switch
         {
             0x01 or 0x02 => false,
