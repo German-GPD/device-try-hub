@@ -74,19 +74,21 @@ internal static class R1BatteryAdapter
 
                 while (true)
                 {
-                    var report = stream.Read();
-                    if (report.Length < 5) continue;
-
-                    if (!R1BatteryReportParser.TryParse(report, out var reading))
+                    byte[] report;
+                    try
+                    {
+                        report = stream.Read();
+                    }
+                    catch (TimeoutException)
+                    {
+                        // Keep the same passive input stream while the mouse is asleep.
                         continue;
+                    }
 
+                    if (report.Length < 5) continue;
+                    if (!R1BatteryReportParser.TryParse(report, out var reading)) continue;
                     AcceptReading(reading);
                 }
-            }
-            catch (TimeoutException)
-            {
-                // Read is blocking and passively receives the mouse's own periodic reports.
-                // A timeout is not a battery value and must never be converted to 0%.
             }
             catch (IOException)
             {
