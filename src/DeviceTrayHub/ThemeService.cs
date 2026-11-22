@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.Win32;
+using MediaColor = System.Windows.Media.Color;
 
 namespace German.DeviceTrayHub;
 
@@ -42,16 +43,16 @@ internal static class ThemeService
     }
 
     private static SolidColorBrush Brush(string value) =>
-        FrozenBrush((Color)ColorConverter.ConvertFromString(value));
+        FrozenBrush((MediaColor)ColorConverter.ConvertFromString(value));
 
-    private static SolidColorBrush FrozenBrush(Color color)
+    private static SolidColorBrush FrozenBrush(MediaColor color)
     {
         var brush = new SolidColorBrush(color);
         brush.Freeze();
         return brush;
     }
 
-    private static Color ReadAccent()
+    private static MediaColor ReadAccent()
     {
         try
         {
@@ -62,11 +63,11 @@ internal static class ThemeService
                 var r = (byte)(argb & 0xFF);
                 var g = (byte)((argb >> 8) & 0xFF);
                 var b = (byte)((argb >> 16) & 0xFF);
-                return Color.FromRgb(r, g, b);
+                return MediaColor.FromRgb(r, g, b);
             }
         }
         catch { }
 
-        return Color.FromRgb(46, 139, 114);
+        return MediaColor.FromRgb(46, 139, 114);
     }
 }
