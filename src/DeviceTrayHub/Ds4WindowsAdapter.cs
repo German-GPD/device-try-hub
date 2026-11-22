@@ -7,9 +7,26 @@ internal static class Ds4WindowsAdapter
 {
     private const string ProcessName = "DS4Windows";
     private const int ControllerSlot = 1;
-    private const int QueryTimeoutMilliseconds = 1400;
+    private const int QueryTimeoutMilliseconds = 900;
+    private static readonly object CacheLock = new();
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(10);
+    private static DateTime _lastQueryUtc = DateTime.MinValue;
+    private static DeviceStatus? _cachedStatus;
 
     public static DeviceStatus ReadStatus()
+    {
+        lock (CacheLock)
+        {
+            if (_cachedStatus is not null && DateTime.UtcNow - _lastQueryUtc < CacheDuration)
+                return _cachedStatus;
+
+            _cachedStatus = ReadStatusCore();
+            _lastQueryUtc = DateTime.UtcNow;
+            return _cachedStatus;
+        }
+    }
+
+    private static DeviceStatus ReadStatusCore()
     {
         var executable = FindRunningExecutable();
         if (executable is null)
