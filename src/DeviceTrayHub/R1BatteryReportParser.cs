@@ -1,6 +1,6 @@
 namespace German.DeviceTrayHub;
 
-internal readonly record struct R1BatteryReading(int Percentage, bool? IsCharging);
+internal readonly record struct R1BatteryReading(int Percentage, bool? IsCharging, byte RawState);
 
 internal static class R1BatteryReportParser
 {
@@ -23,15 +23,18 @@ internal static class R1BatteryReportParser
         var rawCharge = report[4];
         if (rawCharge > 100) return false;
 
+        // Firmware variants report either 0..10 (10% steps) or 0..100.
         var percentage = rawCharge <= 10 ? rawCharge * 10 : rawCharge;
-        bool? isCharging = report[3] switch
+        var state = report[3];
+
+        bool? isCharging = state switch
         {
-            0x01 => false,
-            0x02 or 0x03 or 0x80 => true,
+            0x01 or 0x02 => false,
+            0x03 or 0x80 => true,
             _ => null
         };
 
-        reading = new R1BatteryReading(percentage, isCharging);
+        reading = new R1BatteryReading(percentage, isCharging, state);
         return true;
     }
 }
