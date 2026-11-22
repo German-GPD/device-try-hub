@@ -21,6 +21,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        SourceInitialized += (_, _) => WindowBackdrop.Apply(this);
         IsVisibleChanged += async (_, _) =>
         {
             if (!IsVisible) return;
