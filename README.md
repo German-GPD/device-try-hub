@@ -12,7 +12,7 @@ The current branch contains the WPF tray application, system theme/accent integr
 
 | Device | Connection | Current integration |
 | --- | --- | --- |
-| Keychron K3 Max | 2.4 GHz USB receiver | Pending: receiver battery protocol not confirmed |
+| Keychron K3 Max | 2.4 GHz USB receiver | Experimental receiver/keyboard connection detection; battery still unavailable |
 | Attack Shark R1 | 2.4 GHz USB receiver | Experimental HID reader; physical validation pending |
 | Sony DualShock 4 | Bluetooth USB adapter / DS4Windows | DS4Windows IPC query adapter; requires DS4Windows to be running |
 
@@ -27,11 +27,12 @@ The current branch contains the WPF tray application, system theme/accent integr
 - Windows high-contrast colors take priority for accessibility.
 - Optional per-user startup registration; no administrator permission is required.
 - Device polling runs off the UI thread and avoids overlapping refresh cycles.
+- **Keychron K3 Max (experimental):** probes Keychron Link receivers (VID/PID `3434:D030` / `3434:D031`) with the read-only `FR_GET_STATE` command and reports whether a Keychron device is connected in a receiver slot. It does not claim a battery percentage because the exact battery response over this receiver path is not yet verified.
 - **Attack Shark R1 (experimental):** reads the wireless receiver's HID input report for VID/PID `1D57:FA60`, interface 2, validates report ID/device/status bytes, and decodes battery and known charging flags. If the mouse sleeps, the last confirmed value is retained; disconnecting the receiver clears it.
 - **DualShock 4:** reads battery, charging, and connection type from a running `DS4Windows.exe` process using its documented read-only IPC query command. The first controller slot is used.
 - Self-contained x64 publish and Inno Setup installer pipeline.
 - PowerShell build script checks the SDK, builds, runs tests, publishes, and packages the installer.
-- Unit tests cover R1 report signature validation, charge scaling, and charging-flag decoding.
+- Unit tests cover Keychron receiver-state parsing and R1 report signature validation, charge scaling, and charging-flag decoding.
 
 ## Hardware notes
 
@@ -51,13 +52,15 @@ Reference: [DS4Windows command-line query documentation](https://ds4window.org/c
 
 ### Keychron K3 Max
 
-The keyboard supports 2.4 GHz, Bluetooth, and USB-C, but its battery reporting through the 2.4 GHz receiver is not yet established. The app will not substitute a guessed value or silently switch the keyboard to Bluetooth.
+The receiver adapter uses the documented Keychron Link bridge protocol to query connected slots. The receiver reports the connected peripheral state, but the current public protocol notes do not establish a trustworthy battery percentage for this exact keyboard/receiver path. The app therefore reports connection state only and leaves battery/charging unavailable. It will not substitute a guessed value or silently switch the keyboard to Bluetooth.
+
+Reference: [Keychron Vial protocol notes — bridge/dongle](https://github.com/Tymon3310/keychron-vial/blob/main/docs/launcher/bridge-dongle-protocol.md) and [wireless communication](https://github.com/Tymon3310/keychron-vial/blob/main/docs/launcher/wireless-communication.md).
 
 ## Planned work
 
 1. Validate the R1 adapter against the actual receiver and mouse, including sleep, wake, charging, and disconnect behavior.
 2. Confirm the DS4Windows query output on the installed DS4Windows version and test disconnect/reconnect and charging states.
-3. Identify a reliable K3 Max battery source while preserving the user's 2.4 GHz connection.
+3. Continue investigating a reliable K3 Max battery source while preserving the user's 2.4 GHz connection; receiver connection detection is already implemented experimentally.
 4. Add settings for polling interval, DS4 controller slot, startup, and diagnostics.
 5. Add device reconnect handling, bounded polling, structured logs, and failure recovery.
 6. Improve tray icon, popup animation, accessibility, and high-contrast support.
