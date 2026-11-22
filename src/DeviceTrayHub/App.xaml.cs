@@ -53,7 +53,7 @@ public partial class App : Application
     private void OnUserPreferenceChanged(object? sender, UserPreferenceChangedEventArgs e)
     {
         if (!Dispatcher.HasShutdownStarted)
-            Dispatcher.BeginInvoke(ThemeService.Apply);
+            Dispatcher.BeginInvoke(new Action(ThemeService.Apply));
     }
 
     private void ShowWindow()
