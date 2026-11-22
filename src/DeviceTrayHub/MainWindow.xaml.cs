@@ -4,6 +4,12 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using WpfApplication = System.Windows.Application;
+using MediaBrush = System.Windows.Media.Brush;
+using WpfProgressBar = System.Windows.Controls.ProgressBar;
+using WpfMessageBox = System.Windows.MessageBox;
+using WpfMessageBoxButton = System.Windows.MessageBoxButton;
+using WpfMessageBoxImage = System.Windows.MessageBoxImage;
 
 namespace German.DeviceTrayHub;
 
@@ -50,8 +56,8 @@ public partial class MainWindow : Window
             {
                 var card = new Border
                 {
-                    Background = (Brush)Application.Current.Resources["SurfaceBrush"],
-                    BorderBrush = (Brush)Application.Current.Resources["BorderBrush"],
+                    Background = (MediaBrush)WpfApplication.Current.Resources["SurfaceBrush"],
+                    BorderBrush = (MediaBrush)WpfApplication.Current.Resources["BorderBrush"],
                     BorderThickness = new Thickness(1),
                     CornerRadius = new CornerRadius(9),
                     Padding = new Thickness(12),
@@ -71,7 +77,7 @@ public partial class MainWindow : Window
                     Text = device.Battery,
                     FontSize = 12,
                     FontWeight = FontWeights.SemiBold,
-                    Foreground = (Brush)Application.Current.Resources[
+                    Foreground = (MediaBrush)WpfApplication.Current.Resources[
                         device.Battery == "Недоступно" ? "MutedBrush" : "AccentBrush"]
                 };
                 DockPanel.SetDock(battery, Dock.Right);
@@ -81,15 +87,15 @@ public partial class MainWindow : Window
                 if (int.TryParse(device.Battery.TrimEnd('%'), out var batteryPercent) &&
                     batteryPercent is >= 0 and <= 100)
                 {
-                    panel.Children.Add(new ProgressBar
+                    panel.Children.Add(new WpfProgressBar
                     {
                         Minimum = 0,
                         Maximum = 100,
                         Value = batteryPercent,
                         Height = 4,
                         Margin = new Thickness(0, 8, 0, 1),
-                        Foreground = (Brush)Application.Current.Resources["AccentBrush"],
-                        Background = (Brush)Application.Current.Resources["BorderBrush"],
+                        Foreground = (MediaBrush)WpfApplication.Current.Resources["AccentBrush"],
+                        Background = (MediaBrush)WpfApplication.Current.Resources["BorderBrush"],
                         BorderThickness = new Thickness(0)
                     });
                 }
@@ -99,7 +105,7 @@ public partial class MainWindow : Window
                     Text = device.Connection + "  ·  " + device.Charging,
                     FontSize = 11,
                     Margin = new Thickness(0, 6, 0, 0),
-                    Foreground = (Brush)Application.Current.Resources["MutedBrush"]
+                    Foreground = (MediaBrush)WpfApplication.Current.Resources["MutedBrush"]
                 });
                 panel.Children.Add(new TextBlock
                 {
@@ -107,7 +113,7 @@ public partial class MainWindow : Window
                     FontSize = 10,
                     TextWrapping = TextWrapping.Wrap,
                     Margin = new Thickness(0, 5, 0, 0),
-                    Foreground = (Brush)Application.Current.Resources["MutedBrush"]
+                    Foreground = (MediaBrush)WpfApplication.Current.Resources["MutedBrush"]
                 });
                 card.Child = panel;
                 DeviceList.Children.Add(card);
@@ -172,8 +178,8 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Не удалось изменить автозапуск: {ex.Message}",
-                "Device Tray Hub", MessageBoxButton.OK, MessageBoxImage.Warning);
+            WpfMessageBox.Show($"Не удалось изменить автозапуск: {ex.Message}",
+                "Device Tray Hub", WpfMessageBoxButton.OK, WpfMessageBoxImage.Warning);
         }
     }
 }
